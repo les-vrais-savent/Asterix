@@ -1,5 +1,5 @@
 extensions [matrix]
-globals [m nb-robots blackboard-basic]
+globals [m nb-robots]
 breed [robots robot]
 breed [points point]
 robots-own [assigned leader pointx pointy ciblex cibley]
@@ -13,9 +13,11 @@ points-own [assigned]
 
 ; assigne le point d'id point_id au robot appelant
 to assign-point [point_id]
-  let p (one-of (points with[label = point_id]))
+  let p (point point_id);one-of (points with[label = point_id]))
          set pointx ([xcor] of p)
          set pointY ([ycor] of p)
+         set ciblex ([xcor] of p)
+         set cibley ([ycor] of p)
          set assigned true          ; ce robot est affecte
          ask p [set assigned true]  ; ce point est affecte
 end
@@ -258,54 +260,105 @@ end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-to-report get-form
-  report 5
-end
+;to-report get-form
+;  report [5]
+;end
 
-to-report get-wanted-form
-  ifelse forms-choice = "line" [report get-form]
-  [ ifelse forms-choice = "rang" [report get-form]
-    [ ifelse forms-choice = "square" [report get-form]
-      [ report get-form ]]]
-end
+;to-report get-wanted-form
+;  ifelse forms-choice = "line" [report get-form]
+;  [ ifelse forms-choice = "rang" [report get-form]
+;    [ ifelse forms-choice = "square" [report get-form]
+;      [ report get-form ]]]
+;end
 
+; Fonction de setup de la V2
 to setup-blackboard-basic
   ; Choix de la forme et création de celle ci
-  set blackboard-basic get-wanted-form
-  create-points nb-agents [set shape "circle" set assigned false set color white setxy (who * 5) (who * 5) set label who]
+  ;set-form
+  ; Création des points
+  create-points nb-agents [set shape "circle"  set assigned false set color green setxy (who * 5) (who * 5)]
   ; Création des robots à des positions aléatoires
-  create-robots nb-agents [setxy random-pxcor random-pycor set leader false set assigned false set label (who - nb-agents)]
+  create-robots nb-agents [set shape "person" set size 2 set color red setxy random-pxcor random-pycor set leader false set assigned false]
 end
 
-to go-blackboard-basic
+; Fonction de décision des agents
+; qui s'assigne un point aléatoirement
+to brain-blackboard-basic-dump
+  ; S'il n'a pas d'assignation, il regarde dans le blackboard un point non assigné
+  ; et se l'assigne
+  if (([assigned] of self) = false) [assign-point ([who] of one-of points with [assigned = false])]
 
+  ; Si il n'est pas arrivé à destination, il avance
+  facexy ciblex cibley
+  if ((distancexy ciblex cibley) > 0.5) [fd speed]
+end
+
+; Fonction de décision des agents
+; qui s'assigne le point le plus proche
+; Si il est déjà pris, il cherche le second le plus proche, etc..
+to brain-blackboard-basic-near
+  ; S'il n'a pas d'assignation, il regarde dans le blackboard le point non assigné le plus proche
+  if (([assigned] of self) = false) [assign-point ([who] of min-one-of points with [assigned = false] [distance self])]
+
+  ; Si il n'est pas arrivé à destination, il avance
+  facexy ciblex cibley
+  if ((distancexy ciblex cibley) > 0.5) [fd speed]
+end
+
+; Fonction décision des agents
+; qui s'assigne le point le plus proche, et qui une fois arrivé au point :
+; si quelqu'un est présent sur la position, il se bataille avec leur id pour savoir qui reste
+; sinon se met sur le point
+to brain-blackboard-basic-stronger
+  ; S'il n'a pas d'assignation, il regarde dans le blackboard le point le plus proche
+  if (([assigned] of self) = false) [assign-point ([who] of min-one-of points [distance self])]
+
+  ; S'il n'est pas arrivé à destination, il avance
+  facexy ciblex cibley
+  ifelse ((distancexy ciblex cibley) > 0.5)
+  [fd speed]
+  [
+    if (count(robots with [distance self < 1]) > 1)
+    [
+      print count(robots with [distance self < 1])
+      let n (one-of robots with [distance self < 1])
+      if ([who] of self < [who] of n)
+      [
+        assign-point ([who] of min-one-of points with [assigned = false] [distance self])
+      ]
+    ]
+  ]
+end
+
+; Fonction boucle pour les actions de chaque agents
+to go-blackboard-basic
+  if (agent-behaviour = "dump") [ask robots [brain-blackboard-basic-dump]]
+  if (agent-behaviour = "near") [ask robots [brain-blackboard-basic-near]]
+  if (agent-behaviour = "stronger") [ask robots [brain-blackboard-basic-stronger]]
+  tick
 end
 
 to setup
   ca
   reset-ticks
 end
-
-
-
-
 @#$#@#$#@
 GRAPHICS-WINDOW
-561
-10
-1890
-766
+546
+18
+1317
+458
 -1
 -1
-8.21
+4.74
 1
 10
 1
 1
 1
 0
-0
-0
+1
+1
 1
 -80
 80
@@ -448,11 +501,21 @@ nb-agents
 nb-agents
 0
 100
-16.0
+18.0
 1
 1
 NIL
 HORIZONTAL
+
+CHOOSER
+352
+189
+495
+234
+agent-behaviour
+agent-behaviour
+"dump" "near" "stronger"
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
