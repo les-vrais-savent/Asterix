@@ -3,7 +3,7 @@ globals [m nb-robots]
 breed [robots robot]
 breed [points point]
 robots-own [assigned leader pointx pointy ciblex cibley]
-points-own [assigned]
+points-own [assigned placed is-vertex]
 
 ; m matrice utilisée pour calculé l'algorithme hongrois
 ; leader        : booleen permettant de savoir qui est le leader
@@ -189,12 +189,89 @@ to-report hungarian_method
     ]
   ]
 end
+
+
+to set-point [nb-vertex nb-points]
+; creation de la forme (shape)
+  let radius 10
+  let nb-points-per-edge ((nb-points - nb-vertex) / nb-vertex)
+  ;; Création des points
+  create-points nb-vertex [
+    set shape "circle"
+    set assigned false
+    set color white
+    set label who
+    set placed false
+    set is-vertex true
+  ]
+
+  ;; Positionements des sommets
+  let vertex-list []
+
+  let angles (map [[x] -> x * 360 / nb-vertex] (range nb-vertex))
+  foreach angles [[angle] -> ask one-of points with [placed = false and is-vertex] [
+    set placed true
+
+    ;;création des couples de sommets
+    ;let liste []
+    ;ask points with [is-vertex and placed = false] [set liste (lput self liste)]
+
+    ;foreach liste [[vertex] -> set vertex-list (lput (list self vertex) vertex-list)]
+    setxy (radius * (cos angle)) (radius * (sin angle))
+  ]]
+
+  ;; Création de la liste des couples de sommets
+  let liste []
+  ask points with [is-vertex] [set liste (lput self liste) set placed false]
+
+  show liste
+  foreach liste [[vertex] ->
+    let id ([who] of vertex)
+    ask vertex [set placed true]
+    ask (min-n-of 2 (points with [is-vertex and id != who ]) [distance vertex]) with [placed = false] [set vertex-list (lput (list self vertex) vertex-list)]
+  ]
+  show vertex-list
+
+  ;; Positionement des points sur les cotés
+
+    create-points (nb-points - nb-vertex) [
+    set shape "circle"
+    set assigned false
+    set color white
+    set label who
+    set placed false
+    set is-vertex true
+  ]
+
+  foreach vertex-list [[vertex-tuple] ->
+    let a (first vertex-tuple)
+    let b (last vertex-tuple)
+
+    let x-vector ([xcor] of b - [xcor] of a)
+    let y-vector ([ycor] of b - [ycor] of a)
+
+    ;; création de la liste des coordonées des points à placer entre ces deux sommets
+    let coords (map [[i] -> list ([xcor] of a + (i * x-vector / (nb-points-per-edge + 1))) ([ycor] of a + (i * y-vector / (nb-points-per-edge + 1)))] (range 1 (nb-points-per-edge + 1)))
+
+    foreach coords [[coord-tuple] ->
+      if any? (points with [placed = false]) [
+
+        ask one-of points with [placed = false] [
+          set placed true
+          let x (first coord-tuple)
+          let y (last coord-tuple)
+          setxy x y
+    ]]]
+  ]
+
+end
+
+
 to setup
   ca
   reset-ticks
-  set nb-robots 8
-  ; creation de la forme (shape)
-  create-points nb-robots [set shape "circle"  set assigned false set color white setxy (who * 5) (who * 5) set label who]
+  set nb-robots 80
+  set-point 4 nb-robots
   ; creation des robots
   create-robots nb-robots [setxy random-pxcor random-pycor set leader false set assigned false set label (who - nb-robots)]
 
@@ -215,23 +292,6 @@ to setup
   ask robots with [assigned = false] [
     assign-point (item label point-ids)
   ]
-
-
-;  while [any? robots with [assigned = false]]
-;  [
-;
-;
-;    ; on affecte un point au hasard à un robot au hasard
-;    ; il faut exactement le même nombre de points que de robots
-;    ask one-of robots with [assigned = false]
-;    [    let p one-of points with[assigned = false]
-;         set pointx ([xcor] of p)
-;         set pointY ([ycor] of p)
-;         set assigned true          ; ce robot est affecte
-;         ask p [set assigned true]  ; ce point est affecte
-;    ]
-;  ]
-
 
   ; Calcul des cibles
 
@@ -259,9 +319,6 @@ to go
   if (all? robots [xcor = ciblex and ycor = cibley]) [stop]
   tick
 end
-
-
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 220
@@ -277,8 +334,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-0
-0
+1
+1
 1
 -80
 80
@@ -362,7 +419,7 @@ speed
 speed
 0
 2
-0.4
+0.8
 0.1
 1
 NIL
