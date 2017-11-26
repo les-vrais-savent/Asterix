@@ -34,7 +34,7 @@ to set-point
   let nb-vertex shape-to-nb-vertex
   let nb-points nb-agents
 ; creation de la forme (shape)
-  let radius 30
+  let radius 1
   let nb-points-per-edge ((nb-points - nb-vertex) / nb-vertex)
   ;; Création des points
   create-points nb-vertex [
@@ -587,7 +587,7 @@ nb-agents
 nb-agents
 0
 100
-54.0
+56.0
 1
 1
 NIL
