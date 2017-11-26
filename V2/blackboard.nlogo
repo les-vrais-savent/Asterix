@@ -1,5 +1,5 @@
 extensions [matrix]
-globals [m nb-robots]
+globals [m]
 breed [robots robot]
 breed [points point]
 robots-own [assigned leader pointx pointy ciblex cibley]
@@ -34,7 +34,7 @@ to set-point
   let nb-vertex shape-to-nb-vertex
   let nb-points nb-agents
 ; creation de la forme (shape)
-  let radius 30
+  let radius 10
   let nb-points-per-edge ((nb-points - nb-vertex) / nb-vertex)
   ;; Création des points
   create-points nb-vertex [
@@ -122,7 +122,7 @@ end
 
 ; initialise la matrice avec les distance entre chaque robots et chaque positions
 to init-m
-  set m (matrix:make-constant (nb-robots - 1) (nb-robots - 1) 0)
+  set m (matrix:make-constant (nb-agents - 1) (nb-agents - 1) 0)
   let lead (one-of robots with [leader = true])
   ask points with [assigned = false][
     let realx ([xcor] of lead  - [pointx] of lead + [xcor] of self)
@@ -146,18 +146,18 @@ to-report hungarian_method
 
   ;;;;;;;;;;; PHASE 0 ;;;;;;;;;;;;;
   ; On soustrait à chaque ligne du tableau initial, le plus petit élément de la ligne
-  let minus-matrix (matrix:make-constant (nb-robots - 1) (nb-robots - 1) 0)
-  foreach (range (nb-robots - 1)) [ i ->
+  let minus-matrix (matrix:make-constant (nb-agents - 1) (nb-agents - 1) 0)
+  foreach (range (nb-agents - 1)) [ i ->
     let min-of-row (min (m-get-row i))
-    foreach (range (nb-robots - 1)) [ j ->
+    foreach (range (nb-agents - 1)) [ j ->
       matrix:set minus-matrix i j (min-of-row)
     ]
   ]
   set m (m matrix:- minus-matrix)
   ; On soustrait à chaque colone du tableau initial, le plus petit élément de la colone
-  foreach (range (nb-robots - 1)) [ i ->
+  foreach (range (nb-agents - 1)) [ i ->
     let min-of-col (min (m-get-col i))
-    foreach (range (nb-robots - 1)) [ j ->
+    foreach (range (nb-agents - 1)) [ j ->
       matrix:set minus-matrix j i (min-of-col)
     ]
   ]
@@ -180,7 +180,7 @@ to-report hungarian_method
         let zero-y (position 0 ((m-get-row line-with-less-zero)))
         m-set line-with-less-zero zero-y -1
         ;On  barre  tous  les  zéros  se  trouvant  sur  la  même  ligne  ou  sur  la  même  colonne  que  le  zéro encadré
-        foreach (range (nb-robots - 1)) [ i ->
+        foreach (range (nb-agents - 1)) [ i ->
           if m-get line-with-less-zero i = 0 [m-set line-with-less-zero i -2]
           if m-get i zero-y = 0 [m-set i zero-y -2]
         ]
@@ -191,17 +191,17 @@ to-report hungarian_method
     ; Si l'on a encadré un zéro par ligne et par colonne -> terminé
     let nb-zero 0
     foreach (matrix:to-row-list m) [ l -> set nb-zero (nb-zero + (count-list -1 l))]
-    ifelse (nb-zero = (nb-robots - 1))
+    ifelse (nb-zero = (nb-agents - 1))
     [
       ; on renvoi une liste des positions tel que le robot i est affecté à la position l[i]
-      report (map [robot-id -> position -1 (m-get-col robot-id)] (range (nb-robots - 1)))
+      report (map [robot-id -> position -1 (m-get-col robot-id)] (range (nb-agents - 1)))
     ]
     [
       ;;;;;;;;;;;; PHASE 2 ;;;;;;;;;;;;;
       ;print "!!!!!!!!!!!!!!!!!!!!!!!!! PHASE 2 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
       ;On marque toutes les lignes ne contenant aucun zéro encadré
       let marked-row []
-      foreach (range (nb-robots - 1)) [ row-id -> if (not (member? -1 (m-get-row row-id))) [set marked-row (fput row-id marked-row)]]
+      foreach (range (nb-agents - 1)) [ row-id -> if (not (member? -1 (m-get-row row-id))) [set marked-row (fput row-id marked-row)]]
 
       let marked marked-row != []
       let marked-col []
@@ -209,7 +209,7 @@ to-report hungarian_method
       while [marked] [
         set marked false
        ; On marque toute colonne ayant un zéro barré sur une ligne marquée
-        foreach (range (nb-robots - 1)) [ col-id ->
+        foreach (range (nb-agents - 1)) [ col-id ->
           foreach marked-row [ row-id ->
             if m-get row-id col-id = -2 and (not (member? col-id marked-col)) [
               set marked-col (fput col-id marked-col)
@@ -219,7 +219,7 @@ to-report hungarian_method
         ]
         ;print marked-col
         ;On marque toute ligne ayant un zéro encadré dans une colonne marquée
-        foreach (range (nb-robots - 1)) [ row-id ->
+        foreach (range (nb-agents - 1)) [ row-id ->
           foreach marked-col [ col-id ->
             if m-get row-id col-id = -1 and (not (member? row-id marked-row))[
               set marked-row (fput row-id marked-row)
@@ -231,9 +231,9 @@ to-report hungarian_method
       ;On trace alors un trait sur toute ligne non marquée et sur toute colonne marquée
       let dashed-col marked-col
       let undashed-col []
-      foreach (range (nb-robots - 1)) [ i -> if not member? i marked-col [set undashed-col (fput i undashed-col)]]
+      foreach (range (nb-agents - 1)) [ i -> if not member? i marked-col [set undashed-col (fput i undashed-col)]]
       let dashed-row []
-      foreach (range (nb-robots - 1)) [ i -> if not member? i marked-row [set dashed-row (fput i dashed-row)]]
+      foreach (range (nb-agents - 1)) [ i -> if not member? i marked-row [set dashed-row (fput i dashed-row)]]
       let undashed-row marked-row
       ;print matrix:pretty-print-text m
       ;print dashed-col
@@ -244,8 +244,8 @@ to-report hungarian_method
       ; On retranche à toutes les cases de ce tableau partiel le plus petit élément de celui-ci
 
       ; on commence par démarqué toute les zero
-       foreach (range (nb-robots - 1)) [ row ->
-        foreach (range (nb-robots - 1)) [ col ->
+       foreach (range (nb-agents - 1)) [ row ->
+        foreach (range (nb-agents - 1)) [ col ->
           if (m-get row col) < 0 [m-set row col 0]
         ]
       ]
@@ -276,19 +276,37 @@ to-report hungarian_method
   ]
 end
 
-to setup-hungarian-method
-  set nb-robots nb-agents
+
+to setup
+  ca
+  reset-ticks
   ; creation de la forme (shape)
   set-point
-  ;create-points nb-robots [set shape "circle"  set assigned false set color white setxy (who * 5) (who * 5) set label who]
   ; creation des robots
-  create-robots nb-robots [setxy random-pxcor random-pycor set leader false set assigned false set label (who - nb-robots)]
+  create-robots nb-agents [set shape "person" set size 2 set color red setxy random-pxcor random-pycor set leader false set assigned false set label (who - nb-agents)]
+  ifelse method = "hungarian" [setup-hungarian-method]
+  [if method = "blackboard" [setup-blackboard-basic]]
 
+end
+
+
+; Fonction de setup de la V2
+to setup-blackboard-basic
+  ; Choix de la forme et création de celle ci
+  set-point
+  ; Création des points
+  ;create-points nb-agents [set shape "circle"  set assigned false set color green setxy (who * 5) (who * 5)]
+  ; Création des robots à des positions aléatoires
+  create-robots nb-agents [set shape "person" set size 2 set color red setxy random-pxcor random-pycor set leader false set assigned false]
+end
+
+
+to setup-hungarian-method
   ; le leader est le dernier robot, on lui assigne le dernier point de la forme
   ; choix d'un leader. le leader ne bouge pas !
-  ask robots with [label = (nb-robots - 1)] [
+  ask robots with [label = (nb-agents - 1)] [
     set leader true set label-color red
-    assign-point (nb-robots - 1)
+    assign-point (nb-agents - 1)
     ;  on colore la cible du leader
     ask (points with [xcor = ([pointx] of myself) and ycor = ([pointy] of myself)]) [set color red]
   ]
@@ -301,23 +319,6 @@ to setup-hungarian-method
   ask robots with [assigned = false] [
     assign-point (item label point-ids)
   ]
-
-
-;  while [any? robots with [assigned = false]]
-;  [
-;
-;
-;    ; on affecte un point au hasard à un robot au hasard
-;    ; il faut exactement le même nombre de points que de robots
-;    ask one-of robots with [assigned = false]
-;    [    let p one-of points with[assigned = false]
-;         set pointx ([xcor] of p)
-;         set pointY ([ycor] of p)
-;         set assigned true          ; ce robot est affecte
-;         ask p [set assigned true]  ; ce point est affecte
-;    ]
-;  ]
-
 
   ; Calcul des cibles
 
@@ -337,35 +338,9 @@ to setup-hungarian-method
      set cibley  ([ycor] of lead  - [pointy] of lead + [pointy] of self)
   ]
 end
-to go-hungarian-method
-  ask robots [facexy ciblex cibley]
-  ask robots [ ifelse ((distancexy ciblex cibley) > 0.5) [fd speed][setxy ciblex cibley set label-color green] ]
-  if (all? robots [xcor = ciblex and ycor = cibley]) [stop]
-  tick
-end
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;to-report get-form
-;  report [5]
-;end
 
-;to-report get-wanted-form
-;  ifelse forms-choice = "line" [report get-form]
-;  [ ifelse forms-choice = "rang" [report get-form]
-;    [ ifelse forms-choice = "square" [report get-form]
-;      [ report get-form ]]]
-;end
-
-; Fonction de setup de la V2
-to setup-blackboard-basic
-  ; Choix de la forme et création de celle ci
-  set-point
-  ; Création des points
-  ;create-points nb-agents [set shape "circle"  set assigned false set color green setxy (who * 5) (who * 5)]
-  ; Création des robots à des positions aléatoires
-  create-robots nb-agents [set shape "person" set size 2 set color red setxy random-pxcor random-pycor set leader false set assigned false]
-end
 
 ; Fonction de décision des agents
 ; qui s'assigne un point aléatoirement
@@ -416,17 +391,24 @@ to brain-blackboard-basic-stronger
   ]
 end
 
+to go
+  ifelse method = "hungarian" [go-hungarian-method]
+  [if method = "blackboard" [go-blackboard-basic]]
+  if (all? robots [xcor = ciblex and ycor = cibley]) [stop]
+  tick
+end
+
+to go-hungarian-method
+  ask robots [facexy ciblex cibley]
+  ask robots [ ifelse ((distancexy ciblex cibley) > 0.5) [fd speed][setxy ciblex cibley set label-color green] ]
+end
+
 ; Fonction boucle pour les actions de chaque agents
 to go-blackboard-basic
   if (agent-behaviour = "dump") [ask robots [brain-blackboard-basic-dump]]
   if (agent-behaviour = "near") [ask robots [brain-blackboard-basic-near]]
   if (agent-behaviour = "stronger") [ask robots [brain-blackboard-basic-stronger]]
-  tick
-end
 
-to setup
-  ca
-  reset-ticks
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -456,45 +438,11 @@ GRAPHICS-WINDOW
 ticks
 30.0
 
-BUTTON
-9
-17
-163
-50
-Setup Hungarian
-setup\nsetup-hungarian-method
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-11
-55
-140
-88
-Go hungarian
-go-hungarian-method
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 PLOT
-14
-134
-214
-284
+331
+305
+531
+455
 plot 1
 NIL
 NIL
@@ -509,10 +457,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot sum [distancexy ciblex cibley] of robots"
 
 MONITOR
-14
-296
-129
-341
+32
+411
+147
+456
 sum distances
 sum [distancexy ciblex cibley] of robots
 17
@@ -520,87 +468,97 @@ sum [distancexy ciblex cibley] of robots
 11
 
 SLIDER
-13
-94
-185
-127
+346
+19
+518
+52
 speed
 speed
 0
 2
-0.5
+0.8
 0.1
 1
 NIL
 HORIZONTAL
 
-BUTTON
-352
-18
-511
-51
-Setup blackboard
-setup\nsetup-blackboard-basic
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-353
-57
-489
-90
-Go blackboard
-go-blackboard-basic
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 CHOOSER
-352
-99
-490
-144
+347
+109
+485
+154
 forms-choice
 forms-choice
 "line" "triangle" "square" "5-vertex"
 3
 
 SLIDER
-352
-148
-524
-181
+346
+63
+518
+96
 nb-agents
 nb-agents
 0
 100
-54.0
+20.0
 1
 1
 NIL
 HORIZONTAL
 
 CHOOSER
-352
-189
-495
-234
+347
+223
+490
+268
 agent-behaviour
 agent-behaviour
 "dump" "near" "stronger"
+2
+
+CHOOSER
+348
+164
+486
+209
+method
+method
+"hungarian" "blackboard"
+0
+
+BUTTON
+21
+29
+94
+62
+setup
+setup
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+28
+82
+91
+115
+go
+go
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
 1
 
 @#$#@#$#@
