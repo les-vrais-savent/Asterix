@@ -292,12 +292,8 @@ end
 
 ; Fonction de setup de la V2
 to setup-blackboard-basic
-  ; Choix de la forme et création de celle ci
-  set-point
   ; Création des points
   ;create-points nb-agents [set shape "circle"  set assigned false set color green setxy (who * 5) (who * 5)]
-  ; Création des robots à des positions aléatoires
-  create-robots nb-agents [set shape "person" set size 2 set color red setxy random-pxcor random-pycor set leader false set assigned false]
 end
 
 
@@ -339,9 +335,6 @@ to setup-hungarian-method
   ]
 end
 
-
-
-
 ; Fonction de décision des agents
 ; qui s'assigne un point aléatoirement
 to brain-blackboard-basic-dump
@@ -379,10 +372,10 @@ to brain-blackboard-basic-stronger
   ifelse ((distancexy ciblex cibley) > 0.5)
   [fd speed]
   [
-    if (count(robots with [distance self < 1]) > 1)
+    ; S'il est arrivé et qu'il y a un autre agent
+    if (count(robots with [distance myself < 1]) > 1)
     [
-      print count(robots with [distance self < 1])
-      let n (one-of robots with [distance self < 1])
+      let n (one-of robots with [distance myself < 1])
       if ([who] of self < [who] of n)
       [
         assign-point ([who] of min-one-of points with [assigned = false] [distance self])
@@ -414,11 +407,11 @@ end
 GRAPHICS-WINDOW
 546
 18
-1317
-458
+1749
+702
 -1
 -1
-4.74
+7.4224
 1
 10
 1
@@ -439,10 +432,10 @@ ticks
 30.0
 
 PLOT
-331
-305
-531
-455
+329
+320
+529
+470
 plot 1
 NIL
 NIL
@@ -468,10 +461,10 @@ sum [distancexy ciblex cibley] of robots
 11
 
 SLIDER
-346
-19
-518
-52
+344
+34
+516
+67
 speed
 speed
 0
@@ -483,49 +476,49 @@ NIL
 HORIZONTAL
 
 CHOOSER
-347
-109
-485
-154
+345
+124
+483
+169
 forms-choice
 forms-choice
 "line" "triangle" "square" "5-vertex"
-3
+2
 
 SLIDER
-346
-63
-518
-96
+344
+78
+516
+111
 nb-agents
 nb-agents
 0
 100
-20.0
+10.0
 1
 1
 NIL
 HORIZONTAL
 
 CHOOSER
-347
-223
-490
-268
+345
+238
+488
+283
 agent-behaviour
 agent-behaviour
 "dump" "near" "stronger"
 2
 
 CHOOSER
-348
-164
-486
-209
+346
+179
+484
+224
 method
 method
 "hungarian" "blackboard"
-0
+1
 
 BUTTON
 21
@@ -545,10 +538,10 @@ NIL
 1
 
 BUTTON
-28
-82
-91
-115
+21
+66
+84
+99
 go
 go
 T
