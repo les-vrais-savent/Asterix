@@ -84,7 +84,7 @@ to set-point
     set is-vertex true
   ]
 
-  foreach vertex-list [[vertex-tuple] ->
+  foreach (but-first vertex-list) [[vertex-tuple] ->
     let a (first vertex-tuple)
     let b (last vertex-tuple)
 
@@ -92,7 +92,7 @@ to set-point
     let y-vector ([ycor] of b - [ycor] of a)
 
     ;; création de la liste des coordonées des points à placer entre ces deux sommets
-    let coords (map [[i] -> list ([xcor] of a + (i * x-vector / (nb-points-per-edge + 1))) ([ycor] of a + (i * y-vector / (nb-points-per-edge + 1)))] (range 1 (nb-points-per-edge + 1)))
+    let coords (map [[i] -> list ([xcor] of a + (i * x-vector / (nb-points-per-edge))) ([ycor] of a + (i * y-vector / (nb-points-per-edge )))] (range 1 (nb-points-per-edge)))
 
     foreach coords [[coord-tuple] ->
       if any? (points with [placed = false]) [
@@ -104,6 +104,33 @@ to set-point
           setxy x y
     ]]]
   ]
+
+  ;; On place les points sur le dernier coté
+  ;print ("toto", nb-points-per-edge)
+  if (((nb-points - nb-vertex) mod nb-vertex) != 0) [set nb-points-per-edge (nb-points-per-edge + (((nb-points - nb-vertex) mod nb-vertex)))]
+  ;print "toto" nb-points-per-edge
+
+  let vertex-tuple (first vertex-list)
+  let a (first vertex-tuple)
+  let b (last vertex-tuple)
+
+  let x-vector ([xcor] of b - [xcor] of a)
+  let y-vector ([ycor] of b - [ycor] of a)
+
+  ;; création de la liste des coordonées des points à placer entre ces deux sommets
+  let coords (map [[i] -> list ([xcor] of a + (i * x-vector / (nb-points-per-edge))) ([ycor] of a + (i * y-vector / (nb-points-per-edge)))] (range 1 (nb-points-per-edge)))
+
+  foreach coords [[coord-tuple] ->
+    if any? (points with [placed = false]) [
+
+      ask one-of points with [placed = false] [
+        set placed true
+        let x (first coord-tuple)
+        let y (last coord-tuple)
+        setxy x y
+  ]]]
+
+
 
 end
 
@@ -469,7 +496,7 @@ speed
 speed
 0
 2
-0.8
+0.9
 0.1
 1
 NIL
@@ -483,7 +510,7 @@ CHOOSER
 forms-choice
 forms-choice
 "line" "triangle" "square" "5-vertex"
-1
+2
 
 SLIDER
 344
@@ -494,7 +521,7 @@ nb-agents
 nb-agents
 0
 100
-30.0
+45.0
 1
 1
 NIL
