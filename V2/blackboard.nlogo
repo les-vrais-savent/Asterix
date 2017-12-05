@@ -376,7 +376,7 @@ to brain-blackboard-basic-stronger
     if (count(robots with [distance myself < 1]) > 1)
     [
       let n (one-of robots with [distance myself < 1])
-      if ([who] of self < [who] of n)
+      if (([who] of self < [who] of n) and ([ciblex] of n = [ciblex] of self))
       [
         assign-point ([who] of min-one-of points with [assigned = false] [distance self])
       ]
@@ -483,7 +483,7 @@ CHOOSER
 forms-choice
 forms-choice
 "line" "triangle" "square" "5-vertex"
-2
+1
 
 SLIDER
 344
@@ -494,7 +494,7 @@ nb-agents
 nb-agents
 0
 100
-10.0
+30.0
 1
 1
 NIL
