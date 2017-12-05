@@ -2,8 +2,8 @@ extensions [matrix]
 globals [m]
 breed [robots robot]
 breed [points point]
-robots-own [assigned leader pointx pointy ciblex cibley]
-points-own [assigned placed is-vertex]
+robots-own [assigned leader pointx pointy ciblex cibley id_agent]
+points-own [assigned placed is-vertex id_agent]
 
 ; m matrice utilisée pour calculé l'algorithme hongrois
 ; leader        : booleen permettant de savoir qui est le leader
@@ -13,7 +13,7 @@ points-own [assigned placed is-vertex]
 
 ; assigne le point d'id point_id au robot appelant
 to assign-point [point_id]
-  let p (point point_id);one-of (points with[label = point_id]))
+  let p (point point_id);one-of (points with[id_agent = point_id]))
          set pointx ([xcor] of p)
          set pointY ([ycor] of p)
          set ciblex ([xcor] of p)
@@ -41,7 +41,7 @@ to set-point
     set shape "circle"
     set assigned false
     set color white
-    set label who
+    set id_agent who
     set placed false
     set is-vertex true
   ]
@@ -79,7 +79,7 @@ to set-point
     set shape "circle"
     set assigned false
     set color white
-    set label who
+    set id_agent who
     set placed false
     set is-vertex true
   ]
@@ -128,7 +128,7 @@ to init-m
     let realx ([xcor] of lead  - [pointx] of lead + [xcor] of self)
     let realy ([ycor] of lead  - [pointy] of lead + [ycor] of self)
     ask robots with [leader = false] [
-      m-set ([label] of myself) label (distancexy realx realy)
+      m-set ([id_agent] of myself) id_agent (distancexy realx realy)
     ]
   ]
 end
@@ -283,7 +283,7 @@ to setup
   ; creation de la forme (shape)
   set-point
   ; creation des robots
-  create-robots nb-agents [set shape "person" set size 2 set color red setxy random-pxcor random-pycor set leader false set assigned false set label (who - nb-agents)]
+  create-robots nb-agents [set shape "person" set size 2 set color red setxy random-pxcor random-pycor set leader false set assigned false set id_agent (who - nb-agents)]
   ifelse method = "hungarian" [setup-hungarian-method]
   [if method = "blackboard" [setup-blackboard-basic]]
 
@@ -300,7 +300,7 @@ end
 to setup-hungarian-method
   ; le leader est le dernier robot, on lui assigne le dernier point de la forme
   ; choix d'un leader. le leader ne bouge pas !
-  ask robots with [label = (nb-agents - 1)] [
+  ask robots with [id_agent = (nb-agents - 1)] [
     set leader true set label-color red
     assign-point (nb-agents - 1)
     ;  on colore la cible du leader
@@ -313,7 +313,7 @@ to setup-hungarian-method
   let point-ids hungarian_method
 
   ask robots with [assigned = false] [
-    assign-point (item label point-ids)
+    assign-point (item id_agent point-ids)
   ]
 
   ; Calcul des cibles
