@@ -345,7 +345,7 @@ to brain-blackboard-basic-dump
 
   ; Si il n'est pas arrivé à destination, il avance
   facexy ciblex cibley
-  if ((distancexy ciblex cibley) > 0.5) [fd speed]
+  if ((distancexy ciblex cibley) > 0.5) [fd 1]
 end
 
 ; Fonction de décision des agents
@@ -357,7 +357,7 @@ to brain-blackboard-basic-near
 
   ; Si il n'est pas arrivé à destination, il avance
   facexy ciblex cibley
-  if ((distancexy ciblex cibley) > 0.5) [fd speed]
+  if ((distancexy ciblex cibley) > 0.5) [fd 1]
 end
 
 ; Fonction décision des agents
@@ -371,7 +371,7 @@ to brain-blackboard-basic-stronger
   ; S'il n'est pas arrivé à destination, il avance
   facexy ciblex cibley
   ifelse ((distancexy ciblex cibley) > 0.5)
-  [fd speed]
+  [fd 1]
   [
     ; S'il est arrivé et qu'il y a un autre agent
     if (count(robots with [distance myself < 1]) > 1)
@@ -394,7 +394,7 @@ end
 
 to go-hungarian-method
   ask robots [facexy ciblex cibley]
-  ask robots [ ifelse ((distancexy ciblex cibley) > 0.5) [fd speed][setxy ciblex cibley set label-color green] ]
+  ask robots [ ifelse ((distancexy ciblex cibley) > 0.5) [fd 1][setxy ciblex cibley set label-color green] ]
 end
 
 ; Fonction boucle pour les actions de chaque agents
@@ -419,8 +419,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 -100
 100
@@ -470,7 +470,7 @@ speed
 speed
 0
 2
-0.8
+0.9
 0.1
 1
 NIL
@@ -484,7 +484,7 @@ CHOOSER
 forms-choice
 forms-choice
 "line" "triangle" "square" "5-vertex"
-3
+2
 
 SLIDER
 344
@@ -495,7 +495,7 @@ nb-agents
 nb-agents
 0
 100
-62.0
+67.0
 1
 1
 NIL
@@ -564,7 +564,7 @@ form-size
 form-size
 0
 100
-50.0
+33.0
 1
 1
 NIL
