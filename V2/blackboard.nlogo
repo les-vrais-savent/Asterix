@@ -34,13 +34,13 @@ to set-point
   let nb-vertex shape-to-nb-vertex
   let nb-points nb-agents
 ; creation de la forme (shape)
-  let radius 10
+  let radius form-size
   let nb-points-per-edge ((nb-points - nb-vertex) / nb-vertex)
   ;; Création des points
   create-points nb-vertex [
     set shape "circle"
     set assigned false
-    set color white
+    set color red
     set label who
     set placed false
     set is-vertex true
@@ -65,20 +65,21 @@ to set-point
   let liste []
   ask points with [is-vertex] [set liste (lput self liste) set placed false]
 
-  show liste
+  ;show liste
   foreach liste [[vertex] ->
     let id ([who] of vertex)
     ask vertex [set placed true]
-    ask (min-n-of 2 (points with [is-vertex and id != who ]) [distance vertex]) with [placed = false] [set vertex-list (lput (list self vertex) vertex-list)]
+    ask points [show distance vertex]
+    ask (min-n-of 2 (points with [id != who]) [distance vertex]) with [placed = false] [set vertex-list (lput (list self vertex) vertex-list)]
   ]
-  show vertex-list
+  ;show vertex-list
 
   ;; Positionement des points sur les cotés
 
     create-points (nb-points - nb-vertex) [
     set shape "circle"
     set assigned false
-    set color white
+    set color red
     set label who
     set placed false
     set is-vertex true
@@ -407,11 +408,11 @@ end
 GRAPHICS-WINDOW
 546
 18
-1749
-702
+1154
+627
 -1
 -1
-7.4224
+3.0
 1
 10
 1
@@ -421,10 +422,10 @@ GRAPHICS-WINDOW
 1
 1
 1
--80
-80
--45
-45
+-100
+100
+-100
+100
 0
 0
 1
@@ -432,10 +433,10 @@ ticks
 30.0
 
 PLOT
-329
-320
-529
-470
+328
+376
+528
+526
 plot 1
 NIL
 NIL
@@ -476,14 +477,14 @@ NIL
 HORIZONTAL
 
 CHOOSER
-345
-124
-483
-169
+344
+180
+482
+225
 forms-choice
 forms-choice
 "line" "triangle" "square" "5-vertex"
-1
+3
 
 SLIDER
 344
@@ -494,27 +495,27 @@ nb-agents
 nb-agents
 0
 100
-30.0
+62.0
 1
 1
 NIL
 HORIZONTAL
 
 CHOOSER
-345
-238
-488
-283
+344
+294
+487
+339
 agent-behaviour
 agent-behaviour
 "dump" "near" "stronger"
 2
 
 CHOOSER
-346
-179
-484
-224
+345
+235
+483
+280
 method
 method
 "hungarian" "blackboard"
@@ -553,6 +554,21 @@ NIL
 NIL
 NIL
 1
+
+SLIDER
+343
+120
+515
+153
+form-size
+form-size
+0
+100
+50.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
