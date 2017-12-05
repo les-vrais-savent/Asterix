@@ -460,10 +460,10 @@ ticks
 30.0
 
 PLOT
-328
-376
-528
-526
+329
+320
+529
+470
 plot 1
 NIL
 NIL
@@ -488,61 +488,46 @@ sum [distancexy ciblex cibley] of robots
 1
 11
 
-SLIDER
-344
-34
-516
-67
-speed
-speed
-0
-2
-0.9
-0.1
-1
-NIL
-HORIZONTAL
-
 CHOOSER
-344
-180
-482
-225
+345
+124
+483
+169
 forms-choice
 forms-choice
 "line" "triangle" "square" "5-vertex"
 2
 
 SLIDER
-344
-78
-516
-111
+345
+22
+517
+55
 nb-agents
 nb-agents
 0
 100
-67.0
+42.0
 1
 1
 NIL
 HORIZONTAL
 
 CHOOSER
-344
-294
-487
-339
+345
+238
+488
+283
 agent-behaviour
 agent-behaviour
 "dump" "near" "stronger"
 2
 
 CHOOSER
-345
-235
-483
-280
+346
+179
+484
+224
 method
 method
 "hungarian" "blackboard"
@@ -583,15 +568,15 @@ NIL
 1
 
 SLIDER
-343
-120
-515
-153
+344
+64
+516
+97
 form-size
 form-size
 0
 100
-33.0
+32.0
 1
 1
 NIL
