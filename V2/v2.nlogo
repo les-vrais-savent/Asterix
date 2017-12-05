@@ -150,11 +150,14 @@ end
 
 ; initialise la matrice avec les distance entre chaque robots et chaque positions
 to init-m
-  set m (matrix:make-constant (nb-agents - 1) (nb-agents - 1) 0)
-  let lead (one-of robots with [leader = true])
+  ;set m (matrix:make-constant (nb-agents - 1) (nb-agents - 1) 0)
+  set m (matrix:make-constant (nb-agents) (nb-agents) 0)
+  ;let lead (one-of robots with [leader = true])
   ask points with [assigned = false][
-    let realx ([xcor] of lead  - [pointx] of lead + [xcor] of self)
-    let realy ([ycor] of lead  - [pointy] of lead + [ycor] of self)
+    ;let realx ([xcor] of lead  - [pointx] of lead + [xcor] of self)
+    ;let realy ([ycor] of lead  - [pointy] of lead + [ycor] of self)
+    let realx ([xcor] of self)
+    let realy ([ycor] of self)
     ask robots with [leader = false] [
       m-set ([id_agent] of myself) id_agent (distancexy realx realy)
     ]
@@ -174,7 +177,7 @@ to-report hungarian_method
 
   ;;;;;;;;;;; PHASE 0 ;;;;;;;;;;;;;
   ; On soustrait à chaque ligne du tableau initial, le plus petit élément de la ligne
-  let minus-matrix (matrix:make-constant (nb-agents - 1) (nb-agents - 1) 0)
+  let minus-matrix (matrix:make-constant (nb-agents) (nb-agents) 0)
   foreach (range (nb-agents - 1)) [ i ->
     let min-of-row (min (m-get-row i))
     foreach (range (nb-agents - 1)) [ j ->
@@ -183,9 +186,9 @@ to-report hungarian_method
   ]
   set m (m matrix:- minus-matrix)
   ; On soustrait à chaque colone du tableau initial, le plus petit élément de la colone
-  foreach (range (nb-agents - 1)) [ i ->
+  foreach (range (nb-agents)) [ i ->
     let min-of-col (min (m-get-col i))
-    foreach (range (nb-agents - 1)) [ j ->
+    foreach (range (nb-agents)) [ j ->
       matrix:set minus-matrix j i (min-of-col)
     ]
   ]
@@ -208,7 +211,7 @@ to-report hungarian_method
         let zero-y (position 0 ((m-get-row line-with-less-zero)))
         m-set line-with-less-zero zero-y -1
         ;On  barre  tous  les  zéros  se  trouvant  sur  la  même  ligne  ou  sur  la  même  colonne  que  le  zéro encadré
-        foreach (range (nb-agents - 1)) [ i ->
+        foreach (range (nb-agents)) [ i ->
           if m-get line-with-less-zero i = 0 [m-set line-with-less-zero i -2]
           if m-get i zero-y = 0 [m-set i zero-y -2]
         ]
@@ -219,17 +222,17 @@ to-report hungarian_method
     ; Si l'on a encadré un zéro par ligne et par colonne -> terminé
     let nb-zero 0
     foreach (matrix:to-row-list m) [ l -> set nb-zero (nb-zero + (count-list -1 l))]
-    ifelse (nb-zero = (nb-agents - 1))
+    ifelse (nb-zero = (nb-agents))
     [
       ; on renvoi une liste des positions tel que le robot i est affecté à la position l[i]
-      report (map [robot-id -> position -1 (m-get-col robot-id)] (range (nb-agents - 1)))
+      report (map [robot-id -> position -1 (m-get-col robot-id)] (range (nb-agents)))
     ]
     [
       ;;;;;;;;;;;; PHASE 2 ;;;;;;;;;;;;;
       ;print "!!!!!!!!!!!!!!!!!!!!!!!!! PHASE 2 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
       ;On marque toutes les lignes ne contenant aucun zéro encadré
       let marked-row []
-      foreach (range (nb-agents - 1)) [ row-id -> if (not (member? -1 (m-get-row row-id))) [set marked-row (fput row-id marked-row)]]
+      foreach (range (nb-agents)) [ row-id -> if (not (member? -1 (m-get-row row-id))) [set marked-row (fput row-id marked-row)]]
 
       let marked marked-row != []
       let marked-col []
@@ -237,7 +240,7 @@ to-report hungarian_method
       while [marked] [
         set marked false
        ; On marque toute colonne ayant un zéro barré sur une ligne marquée
-        foreach (range (nb-agents - 1)) [ col-id ->
+        foreach (range (nb-agents)) [ col-id ->
           foreach marked-row [ row-id ->
             if m-get row-id col-id = -2 and (not (member? col-id marked-col)) [
               set marked-col (fput col-id marked-col)
@@ -247,7 +250,7 @@ to-report hungarian_method
         ]
         ;print marked-col
         ;On marque toute ligne ayant un zéro encadré dans une colonne marquée
-        foreach (range (nb-agents - 1)) [ row-id ->
+        foreach (range (nb-agents)) [ row-id ->
           foreach marked-col [ col-id ->
             if m-get row-id col-id = -1 and (not (member? row-id marked-row))[
               set marked-row (fput row-id marked-row)
@@ -259,9 +262,9 @@ to-report hungarian_method
       ;On trace alors un trait sur toute ligne non marquée et sur toute colonne marquée
       let dashed-col marked-col
       let undashed-col []
-      foreach (range (nb-agents - 1)) [ i -> if not member? i marked-col [set undashed-col (fput i undashed-col)]]
+      foreach (range (nb-agents)) [ i -> if not member? i marked-col [set undashed-col (fput i undashed-col)]]
       let dashed-row []
-      foreach (range (nb-agents - 1)) [ i -> if not member? i marked-row [set dashed-row (fput i dashed-row)]]
+      foreach (range (nb-agents)) [ i -> if not member? i marked-row [set dashed-row (fput i dashed-row)]]
       let undashed-row marked-row
       ;print matrix:pretty-print-text m
       ;print dashed-col
@@ -272,8 +275,8 @@ to-report hungarian_method
       ; On retranche à toutes les cases de ce tableau partiel le plus petit élément de celui-ci
 
       ; on commence par démarqué toute les zero
-       foreach (range (nb-agents - 1)) [ row ->
-        foreach (range (nb-agents - 1)) [ col ->
+       foreach (range (nb-agents)) [ row ->
+        foreach (range (nb-agents)) [ col ->
           if (m-get row col) < 0 [m-set row col 0]
         ]
       ]
@@ -328,12 +331,12 @@ end
 to setup-hungarian-method
   ; le leader est le dernier robot, on lui assigne le dernier point de la forme
   ; choix d'un leader. le leader ne bouge pas !
-  ask robots with [id_agent = (nb-agents - 1)] [
-    set leader true set label-color red
-    assign-point (nb-agents - 1)
+ ; ask robots with [id_agent = (nb-agents - 1)] [
+  ;  set leader true set label-color red
+   ; assign-point (nb-agents - 1)
     ;  on colore la cible du leader
-    ask (points with [xcor = ([pointx] of myself) and ycor = ([pointy] of myself)]) [set color red]
-  ]
+    ;ask (points with [xcor = ([pointx] of myself) and ycor = ([pointy] of myself)]) [set color red]
+  ;]
 
   init-m
   print matrix:pretty-print-text m
@@ -347,20 +350,20 @@ to setup-hungarian-method
   ; Calcul des cibles
 
   ; Il n'y a qu'un leader; le leader ne bouge pas
-  let lead (one-of robots with [leader = true])
-  ask lead
-  [
-      set ciblex  [xcor] of self
-      set cibley  [ycor] of self
-      setxy ciblex cibley
-  ]
+  ;let lead (one-of robots with [leader = true])
+  ;ask lead
+  ;[
+  ;    set ciblex  [xcor] of self
+  ;    set cibley  [ycor] of self
+  ;    setxy ciblex cibley
+  ;]
 
   ; les autres non leader prennent leurs positions
-  ask robots with [leader = false]
-  [
-     set ciblex  ([xcor] of lead  - [pointx] of lead + [pointx] of self)
-     set cibley  ([ycor] of lead  - [pointy] of lead + [pointy] of self)
-  ]
+  ;ask robots with [leader = false]
+  ;[
+  ;   set ciblex  ([xcor] of lead  - [pointx] of lead + [pointx] of self)
+  ;   set cibley  ([ycor] of lead  - [pointy] of lead + [pointy] of self)
+  ;]
 end
 
 ; Fonction de décision des agents
@@ -531,7 +534,7 @@ CHOOSER
 method
 method
 "hungarian" "blackboard"
-1
+0
 
 BUTTON
 21
