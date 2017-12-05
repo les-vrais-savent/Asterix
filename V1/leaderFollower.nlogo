@@ -270,8 +270,8 @@ end
 to setup
   ca
   reset-ticks
-  set nb-robots 80
-  set-point 4 nb-robots
+  set nb-robots 24
+  set-point 6 nb-robots
   ; creation des robots
   create-robots nb-robots [setxy random-pxcor random-pycor set leader false set assigned false set label (who - nb-robots)]
 
