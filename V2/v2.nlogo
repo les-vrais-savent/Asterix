@@ -2,7 +2,7 @@ extensions [matrix]
 globals [m]
 breed [robots robot]
 breed [points point]
-robots-own [assigned leader pointx pointy ciblex cibley id_agent]
+robots-own [assigned leader pointx pointy ciblex cibley id_agent is_placed]
 points-own [assigned placed is-vertex id_agent]
 
 ; m matrice utilisée pour calculé l'algorithme hongrois
@@ -314,7 +314,7 @@ to setup
   ; creation de la forme (shape)
   set-point
   ; creation des robots
-  create-robots nb-agents [set shape "person" set size 2 set color red setxy random-pxcor random-pycor set leader false set assigned false set id_agent (who - nb-agents)]
+  create-robots nb-agents [set shape "person" set size 2 set color red setxy random-pxcor random-pycor set leader false set assigned false set id_agent (who - nb-agents) set is_placed false]
   ifelse method = "hungarian" [setup-hungarian-method]
   [if method = "blackboard" [setup-blackboard-basic]]
 
@@ -329,15 +329,6 @@ end
 
 
 to setup-hungarian-method
-  ; le leader est le dernier robot, on lui assigne le dernier point de la forme
-  ; choix d'un leader. le leader ne bouge pas !
- ; ask robots with [id_agent = (nb-agents - 1)] [
-  ;  set leader true set label-color red
-   ; assign-point (nb-agents - 1)
-    ;  on colore la cible du leader
-    ;ask (points with [xcor = ([pointx] of myself) and ycor = ([pointy] of myself)]) [set color red]
-  ;]
-
   init-m
   print matrix:pretty-print-text m
   ; affectation (assignment) des points aux robots
@@ -346,24 +337,6 @@ to setup-hungarian-method
   ask robots with [assigned = false] [
     assign-point (item id_agent point-ids)
   ]
-
-  ; Calcul des cibles
-
-  ; Il n'y a qu'un leader; le leader ne bouge pas
-  ;let lead (one-of robots with [leader = true])
-  ;ask lead
-  ;[
-  ;    set ciblex  [xcor] of self
-  ;    set cibley  [ycor] of self
-  ;    setxy ciblex cibley
-  ;]
-
-  ; les autres non leader prennent leurs positions
-  ;ask robots with [leader = false]
-  ;[
-  ;   set ciblex  ([xcor] of lead  - [pointx] of lead + [pointx] of self)
-  ;   set cibley  ([ycor] of lead  - [pointy] of lead + [pointy] of self)
-  ;]
 end
 
 ; Fonction de décision des agents
@@ -375,7 +348,7 @@ to brain-blackboard-basic-dump
 
   ; Si il n'est pas arrivé à destination, il avance
   facexy ciblex cibley
-  if ((distancexy ciblex cibley) > 0.5) [fd 1]
+  ifelse ((distancexy ciblex cibley) > 0.5) [fd 1][set is_placed true]
 end
 
 ; Fonction de décision des agents
@@ -387,7 +360,7 @@ to brain-blackboard-basic-near
 
   ; Si il n'est pas arrivé à destination, il avance
   facexy ciblex cibley
-  if ((distancexy ciblex cibley) > 0.5) [fd 1]
+  ifelse ((distancexy ciblex cibley) > 0.5) [fd 1][set is_placed true]
 end
 
 ; Fonction décision des agents
@@ -404,7 +377,7 @@ to brain-blackboard-basic-stronger
   [fd 1]
   [
     ; S'il est arrivé et qu'il y a un autre agent
-    if (count(robots with [distance myself < 1]) > 1)
+    ifelse (count(robots with [distance myself < 1]) > 1)
     [
       let n (one-of robots with [distance myself < 1])
       if (([who] of self < [who] of n) and ([ciblex] of n = [ciblex] of self))
@@ -412,19 +385,20 @@ to brain-blackboard-basic-stronger
         assign-point ([who] of min-one-of points with [assigned = false] [distance self])
       ]
     ]
+    [set is_placed true]
   ]
 end
 
 to go
   ifelse method = "hungarian" [go-hungarian-method]
   [if method = "blackboard" [go-blackboard-basic]]
-  if (all? robots [xcor = ciblex and ycor = cibley]) [stop]
+  if (all? robots [is_placed]) [stop]
   tick
 end
 
 to go-hungarian-method
   ask robots [facexy ciblex cibley]
-  ask robots [ ifelse ((distancexy ciblex cibley) > 0.5) [fd 1][setxy ciblex cibley set label-color green] ]
+  ask robots [ ifelse ((distancexy ciblex cibley) > 0.5) [fd 1][set is_placed true] ]
 end
 
 ; Fonction boucle pour les actions de chaque agents
@@ -534,7 +508,7 @@ CHOOSER
 method
 method
 "hungarian" "blackboard"
-0
+1
 
 BUTTON
 21
