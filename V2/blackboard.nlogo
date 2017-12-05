@@ -34,7 +34,7 @@ to set-point
   let nb-vertex shape-to-nb-vertex
   let nb-points nb-agents
 ; creation de la forme (shape)
-  let radius 10
+  let radius form-size
   let nb-points-per-edge ((nb-points - nb-vertex) / nb-vertex)
   ;; Création des points
   create-points nb-vertex [
@@ -65,13 +65,14 @@ to set-point
   let liste []
   ask points with [is-vertex] [set liste (lput self liste) set placed false]
 
-  show liste
+  ;show liste
   foreach liste [[vertex] ->
     let id ([who] of vertex)
     ask vertex [set placed true]
-    ask (min-n-of 2 (points with [is-vertex and id != who ]) [distance vertex]) with [placed = false] [set vertex-list (lput (list self vertex) vertex-list)]
+    ask points [show distance vertex]
+    ask (min-n-of 2 (points with [id != who]) [distance vertex]) with [placed = false] [set vertex-list (lput (list self vertex) vertex-list)]
   ]
-  show vertex-list
+  ;show vertex-list
 
   ;; Positionement des points sur les cotés
 
@@ -371,7 +372,7 @@ to brain-blackboard-basic-dump
 
   ; Si il n'est pas arrivé à destination, il avance
   facexy ciblex cibley
-  if ((distancexy ciblex cibley) > 0.5) [fd speed]
+  if ((distancexy ciblex cibley) > 0.5) [fd 1]
 end
 
 ; Fonction de décision des agents
@@ -383,7 +384,7 @@ to brain-blackboard-basic-near
 
   ; Si il n'est pas arrivé à destination, il avance
   facexy ciblex cibley
-  if ((distancexy ciblex cibley) > 0.5) [fd speed]
+  if ((distancexy ciblex cibley) > 0.5) [fd 1]
 end
 
 ; Fonction décision des agents
@@ -397,7 +398,7 @@ to brain-blackboard-basic-stronger
   ; S'il n'est pas arrivé à destination, il avance
   facexy ciblex cibley
   ifelse ((distancexy ciblex cibley) > 0.5)
-  [fd speed]
+  [fd 1]
   [
     ; S'il est arrivé et qu'il y a un autre agent
     if (count(robots with [distance myself < 1]) > 1)
@@ -420,7 +421,7 @@ end
 
 to go-hungarian-method
   ask robots [facexy ciblex cibley]
-  ask robots [ ifelse ((distancexy ciblex cibley) > 0.5) [fd speed][setxy ciblex cibley set label-color green] ]
+  ask robots [ ifelse ((distancexy ciblex cibley) > 0.5) [fd 1][setxy ciblex cibley set label-color green] ]
 end
 
 ; Fonction boucle pour les actions de chaque agents
@@ -434,24 +435,24 @@ end
 GRAPHICS-WINDOW
 546
 18
-1749
-702
+1157
+630
 -1
 -1
-7.4224
+3.0
 1
 10
 1
 1
 1
 0
+0
+0
 1
-1
-1
--80
-80
--45
-45
+-100
+100
+-100
+100
 0
 0
 1
@@ -459,10 +460,10 @@ ticks
 30.0
 
 PLOT
-329
-320
-529
-470
+328
+376
+528
+526
 plot 1
 NIL
 NIL
@@ -503,10 +504,10 @@ NIL
 HORIZONTAL
 
 CHOOSER
-345
-124
-483
-169
+344
+180
+482
+225
 forms-choice
 forms-choice
 "line" "triangle" "square" "5-vertex"
@@ -521,27 +522,27 @@ nb-agents
 nb-agents
 0
 100
-45.0
+67.0
 1
 1
 NIL
 HORIZONTAL
 
 CHOOSER
-345
-238
-488
-283
+344
+294
+487
+339
 agent-behaviour
 agent-behaviour
 "dump" "near" "stronger"
 2
 
 CHOOSER
-346
-179
-484
-224
+345
+235
+483
+280
 method
 method
 "hungarian" "blackboard"
@@ -580,6 +581,21 @@ NIL
 NIL
 NIL
 1
+
+SLIDER
+343
+120
+515
+153
+form-size
+form-size
+0
+100
+33.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
