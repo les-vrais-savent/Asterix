@@ -383,6 +383,7 @@ to brain-blackboard-basic-stronger
       if (([who] of self < [who] of n) and ([ciblex] of n = [ciblex] of self))
       [
         assign-point ([who] of min-one-of points with [assigned = false] [distance self])
+        set is_placed false
       ]
     ]
     [set is_placed true]
