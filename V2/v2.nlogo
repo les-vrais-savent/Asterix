@@ -30,15 +30,52 @@ to-report shape-to-nb-vertex
   if forms-choice = "5-vertex" [report 5]
 end
 
+; Renvoi une liste contenant, pour chaque coté, le nombre de points à placer sur ce coté
+to-report gen-nb-point-per-edges [nb-edges nb-points]
+  let nb-moy (int (nb-points / nb-edges))
+  let more-points (nb-points mod nb-edges)
+
+  let result-list []
+
+  foreach (range more-points) [ x ->
+    set result-list (insert-item 0 result-list (nb-moy + 1))
+  ]
+
+  foreach (range (nb-edges - more-points)) [x ->
+   set result-list (insert-item 0 result-list nb-moy)
+  ]
+
+  report result-list
+end
+
+to place-points-between [nb-points p1 p2]
+  let x-vector ([xcor] of p2 - [xcor] of p1)
+  let y-vector ([ycor] of p2 - [ycor] of p1)
+
+  ;; création de la liste des coordonées des points à placer entre ces deux sommets
+  let coords (map [[i] -> list ([xcor] of p1 + (i * x-vector / (nb-points + 1))) ([ycor] of p1 + (i * y-vector / (nb-points + 1)))] (range 1 (nb-points + 1)))
+
+  foreach coords [[coord-tuple] ->
+    if any? (points with [placed = false]) [
+
+      ask one-of points with [placed = false] [
+        set placed true
+        let x (first coord-tuple)
+        let y (last coord-tuple)
+        setxy x y
+  ]]]
+end
+
 to set-point
   let nb-vertex shape-to-nb-vertex
   let nb-points nb-agents
+
 ; creation de la forme (shape)
   let radius form-size
-  let nb-points-per-edge ((nb-points - nb-vertex) / nb-vertex)
-  ;; Création des points
+  let nb-points-per-edge-list (gen-nb-point-per-edges nb-vertex (nb-points - nb-vertex))
+
+  ;; Création des sommets
   create-points nb-vertex [
-    set shape "circle"
     set assigned false
     set color white
     set id_agent who
@@ -52,12 +89,6 @@ to set-point
   let angles (map [[x] -> x * 360 / nb-vertex] (range nb-vertex))
   foreach angles [[angle] -> ask one-of points with [placed = false and is-vertex] [
     set placed true
-
-    ;;création des couples de sommets
-    ;let liste []
-    ;ask points with [is-vertex and placed = false] [set liste (lput self liste)]
-
-    ;foreach liste [[vertex] -> set vertex-list (lput (list self vertex) vertex-list)]
     setxy (radius * (cos angle)) (radius * (sin angle))
   ]]
 
@@ -85,55 +116,12 @@ to set-point
     set is-vertex true
   ]
 
-  foreach (but-first vertex-list) [[vertex-tuple] ->
-    let a (first vertex-tuple)
-    let b (last vertex-tuple)
-
-    let x-vector ([xcor] of b - [xcor] of a)
-    let y-vector ([ycor] of b - [ycor] of a)
-
-    ;; création de la liste des coordonées des points à placer entre ces deux sommets
-    let coords (map [[i] -> list ([xcor] of a + (i * x-vector / (nb-points-per-edge))) ([ycor] of a + (i * y-vector / (nb-points-per-edge )))] (range 1 (nb-points-per-edge)))
-
-    foreach coords [[coord-tuple] ->
-      if any? (points with [placed = false]) [
-
-        ask one-of points with [placed = false] [
-          set placed true
-          let x (first coord-tuple)
-          let y (last coord-tuple)
-          setxy x y
-    ]]]
-  ]
-
-  ;; On place les points sur le dernier coté
-  ;print ("toto", nb-points-per-edge)
-  if (((nb-points - nb-vertex) mod nb-vertex) != 0) [set nb-points-per-edge (nb-points-per-edge + (((nb-points - nb-vertex) mod nb-vertex)))]
-  ;print "toto" nb-points-per-edge
-
-  let vertex-tuple (first vertex-list)
-  let a (first vertex-tuple)
-  let b (last vertex-tuple)
-
-  let x-vector ([xcor] of b - [xcor] of a)
-  let y-vector ([ycor] of b - [ycor] of a)
-
-  ;; création de la liste des coordonées des points à placer entre ces deux sommets
-  let coords (map [[i] -> list ([xcor] of a + (i * x-vector / (nb-points-per-edge))) ([ycor] of a + (i * y-vector / (nb-points-per-edge)))] (range 1 (nb-points-per-edge)))
-
-  foreach coords [[coord-tuple] ->
-    if any? (points with [placed = false]) [
-
-      ask one-of points with [placed = false] [
-        set placed true
-        let x (first coord-tuple)
-        let y (last coord-tuple)
-        setxy x y
-  ]]]
-
-
-
+  (foreach vertex-list nb-points-per-edge-list [ [vertex-tuple local-nb-points] ->
+    place-points-between local-nb-points (first vertex-tuple) (last vertex-tuple)
+  ])
 end
+
+
 
 to m-set [i j x]
   matrix:set m i j x
@@ -485,7 +473,7 @@ nb-agents
 nb-agents
 0
 100
-61.0
+12.0
 1
 1
 NIL
