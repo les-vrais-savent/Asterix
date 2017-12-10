@@ -370,7 +370,7 @@ to brain-blackboard-basic-stronger
     let var_placed true
     if (count(robots with [distance myself < 1]) > 1)
     [
-      let n (max-one-of robots with [distance myself < 1] [[who] of self]) ; Choisir le plus petit "who"
+      let n (max-one-of robots with [distance myself < 1] [[who] of self]) 
       if (([who] of self < [who] of n) and ([ciblex] of n = [ciblex] of self and [cibley] of n = [cibley] of self))
       [
         assign-point ([who] of min-one-of points with [assigned = false] [distance myself])

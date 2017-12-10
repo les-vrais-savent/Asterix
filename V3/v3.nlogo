@@ -16,7 +16,6 @@ to move-fd
   set sum-distance sum-distance + 1
 end
 
-
 ; assigne le point d'id point_id au robot appelant
 to assign-point [point_id]
   let p (point point_id);one-of (points with[id_agent = point_id]))
@@ -382,18 +381,18 @@ to brain-blackboard-basic-stronger-target
     let var_placed true
     ifelse (count(robots with [distance myself < 1]) > 1)
     [
-      let n (max-one-of robots with [distance myself < 1] [[who] of self]) ; Choisir le plus petit "who"
+      let n (max-one-of robots with [distance myself < 1] [[who] of self])
       if (([who] of self < [who] of n) and ([ciblex] of n = [ciblex] of self and [cibley] of n = [cibley] of self))
       [
-        assign-target ([who] of min-one-of points with [assigned = false] [distance myself])
-        set is_placed false
+        assign-target ([who] of min-one-of points with [assigned = false and (xcor != [ciblex] of myself or ycor != [cibley] of myself)] [distance myself])
         set var_placed false
       ]
     ]
     [
       let x ([ciblex] of self)
       let y ([cibley] of self)
-      ask points with [xcor = x and ycor = y] [set assigned true]
+      ;assign-point ([who] of min-one-of points with [assigned = false] [distance myself])
+      ask points with [xcor = x and ycor = y] [set assigned true set color green]
     ]
     set is_placed var_placed
   ]
@@ -412,11 +411,10 @@ to brain-blackboard-basic-stronger
     let var_placed true
     if (count(robots with [distance myself < 1]) > 1)
     [
-      let n (max-one-of robots with [distance myself < 1] [[who] of self]) ; Choisir le plus petit "who"
+      let n (max-one-of robots with [distance myself < 1] [[who] of self])
       if (([who] of self < [who] of n) and ([ciblex] of n = [ciblex] of self and [cibley] of n = [cibley] of self))
       [
         assign-point ([who] of min-one-of points with [assigned = false] [distance myself])
-        set is_placed false
         set var_placed false
       ]
     ]
@@ -629,10 +627,10 @@ ticks
 30.0
 
 PLOT
-164
-324
-460
-554
+8
+294
+304
+524
 plot 1
 NIL
 NIL
@@ -646,57 +644,46 @@ false
 PENS
 "default" 1.0 0 -16777216 true "" "plot sum [distancexy ciblex cibley] of robots"
 
-MONITOR
-32
-411
-147
-456
-sum distances
-sum [distancexy ciblex cibley] of robots
-17
-1
-11
-
 SLIDER
-180
-26
-352
-59
+197
+24
+369
+57
 nb-agents
 nb-agents
 0
 100
-20.0
+87.0
 1
 1
 NIL
 HORIZONTAL
 
 CHOOSER
-180
-242
-323
-287
+194
+232
+355
+277
 agent-behaviour
 agent-behaviour
-"dump" "near" "stronger"
-1
+"dump" "near" "stronger" "stronger-target"
+3
 
 CHOOSER
-181
-183
-319
-228
+195
+152
+333
+197
 method
 method
 "hungarian" "blackboard"
 1
 
 BUTTON
-21
-29
-94
-62
+9
+32
+82
+65
 setup
 setup
 NIL
@@ -710,10 +697,10 @@ NIL
 1
 
 BUTTON
-21
-66
-84
-99
+9
+69
+72
+102
 go
 go
 T
@@ -727,15 +714,15 @@ NIL
 1
 
 SLIDER
-179
-68
-351
-101
+196
+66
+368
+99
 form-size
 form-size
 0
 100
-20.0
+80.0
 1
 1
 NIL
@@ -767,32 +754,32 @@ NIL
 HORIZONTAL
 
 MONITOR
-6
-352
-146
-397
-distance parcourue
+9
+205
+186
+250
+Total distance parcourue
 sum-distance
 17
 1
 11
 
 MONITOR
--3
-288
-159
-333
-moyenne des distance
+9
+151
+171
+196
+Moyenne des distance
 moy
 17
 1
 11
 
 BUTTON
-65
-124
-170
-157
+10
+107
+115
+140
 NIL
 simulation\n
 NIL
@@ -806,10 +793,10 @@ NIL
 1
 
 SLIDER
-182
-123
-354
-156
+195
+108
+367
+141
 nb-vertex
 nb-vertex
 3
@@ -819,6 +806,16 @@ nb-vertex
 1
 NIL
 HORIZONTAL
+
+TEXTBOX
+198
+207
+361
+225
+Behaviour for blackboard\n
+12
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
