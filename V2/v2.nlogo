@@ -27,14 +27,6 @@ to assign-point [point_id]
          ask p [set assigned true]  ; ce point est affecte
 end
 
-; Crée une forme selon le nb de sommet
-to-report shape-to-nb-vertex
-  if forms-choice = "line" [report 2]
-  if forms-choice = "triangle" [report 3]
-  if forms-choice = "square" [report 4]
-  if forms-choice = "5-vertex" [report 5]
-end
-
 ; Renvoi une liste contenant, pour chaque coté, le nombre de points à placer sur ce coté
 to-report gen-nb-point-per-edges [nb-edges nb-points]
   let nb-moy (int (nb-points / nb-edges))
@@ -72,7 +64,6 @@ to place-points-between [nb-points p1 p2]
 end
 
 to set-point
-  let nb-vertex shape-to-nb-vertex
   let nb-points nb-agents
 
 ; creation de la forme (shape)
@@ -412,9 +403,9 @@ to go-blackboard-basic
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-546
+466
 18
-1157
+1077
 630
 -1
 -1
@@ -439,10 +430,10 @@ ticks
 30.0
 
 PLOT
-329
-320
-529
-470
+20
+114
+220
+264
 plot 1
 NIL
 NIL
@@ -457,56 +448,46 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot sum [distancexy ciblex cibley] of robots"
 
 MONITOR
-32
-411
-147
-456
-sum distances
-sum [distancexy ciblex cibley] of robots
+18
+281
+133
+326
+Total distance
+sum-distance
 17
 1
 11
 
-CHOOSER
-345
-124
-483
-169
-forms-choice
-forms-choice
-"line" "triangle" "square" "5-vertex"
-3
-
 SLIDER
-345
-22
-517
-55
+235
+23
+407
+56
 nb-agents
 nb-agents
 0
 100
-59.0
+100.0
 1
 1
 NIL
 HORIZONTAL
 
 CHOOSER
-345
-238
-488
-283
+236
+257
+379
+302
 agent-behaviour
 agent-behaviour
 "dump" "near" "stronger"
 2
 
 CHOOSER
-346
-179
-484
-224
+236
+180
+374
+225
 method
 method
 "hungarian" "blackboard"
@@ -547,15 +528,51 @@ NIL
 1
 
 SLIDER
-344
-64
-516
-97
+234
+65
+406
+98
 form-size
 form-size
 10
 100
-10.0
+43.0
+1
+1
+NIL
+HORIZONTAL
+
+MONITOR
+18
+340
+75
+385
+Tick
+ticks
+17
+1
+11
+
+TEXTBOX
+236
+236
+394
+254
+Behaviour for blackboard
+12
+0.0
+1
+
+SLIDER
+234
+108
+406
+141
+nb-vertex
+nb-vertex
+3
+20
+3.0
 1
 1
 NIL
