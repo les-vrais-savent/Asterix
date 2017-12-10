@@ -410,7 +410,7 @@ to move-leader
   ; S'ils n'ont pas encore enregistré la distance avec leurs deux plus proches voisins
   if (all? robots [neighbours = nobody])
   [
-    ask robots [set neighbours (min-n-of 3 robots with [id_agent != [id_agent] of myself] [distance myself])
+    ask robots [set neighbours (min-n-of 10 robots with [id_agent != [id_agent] of myself] [distance myself])
                 let l [distance myself] of turtle-set sort-on [who] neighbours
                 set dist-neighbours l]
   ]
@@ -650,7 +650,7 @@ CHOOSER
 agent-behaviour
 agent-behaviour
 "dump" "near" "stronger"
-1
+2
 
 CHOOSER
 181
@@ -719,7 +719,7 @@ CHOOSER
 mover
 mover
 "static" "centralized" "leader" "army"
-3
+0
 
 SLIDER
 378
@@ -730,7 +730,7 @@ directions
 directions
 0
 360
-105.0
+360.0
 1
 1
 NIL
