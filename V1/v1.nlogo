@@ -315,7 +315,7 @@ end
 
 to go
   ask robots [facexy ciblex cibley]
-  ask robots [ ifelse ((distancexy ciblex cibley) > 0.5) [fd speed][setxy ciblex cibley set label-color green] ]
+  ask robots [ ifelse ((distancexy ciblex cibley) > 0.5) [fd 1][setxy ciblex cibley set label-color green] ]
   if (all? robots [xcor = ciblex and ycor = cibley]) [stop]
   tick
 end
@@ -409,21 +409,6 @@ sum [distancexy ciblex cibley] of robots
 17
 1
 11
-
-SLIDER
-12
-201
-184
-234
-speed
-speed
-0
-2
-0.8
-0.1
-1
-NIL
-HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
