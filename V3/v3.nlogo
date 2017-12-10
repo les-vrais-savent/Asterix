@@ -19,6 +19,14 @@ to assign-point [point_id]
          ask p [set assigned true]  ; ce point est affecte
 end
 
+; assigne un point à un agent mais ce point n'est pas assigné. Il peut donc etre donné comme cible à un autre agent
+to assign-target [point_id]
+  let p (point point_id);one-of (points with[id_agent = point_id]))
+         set ciblex ([xcor] of p)
+         set cibley ([ycor] of p)
+         set assigned true          ; ce robot est affecte
+end
+
 ; Crée une forme selon le nb de sommet
 to-report shape-to-nb-vertex
   if forms-choice = "line" [report 2]
@@ -359,6 +367,36 @@ end
 ; qui s'assigne le point le plus proche, et qui une fois arrivé au point :
 ; si quelqu'un est présent sur la position, il se bataille avec leur id pour savoir qui reste
 ; sinon se met sur le point
+to brain-blackboard-basic-stronger-target
+  ; S'il n'a pas d'assignation, il regarde dans le blackboard le point le plus proche
+  if (([assigned] of self) = false) [assign-target ([who] of min-one-of points [distance myself])]
+
+  ; S'il n'est pas arrivé à destination, il avance
+  facexy ciblex cibley
+  ifelse ((distancexy ciblex cibley) > 0.5)
+  [fd 1]
+  [
+    ; S'il est arrivé et qu'il y a un autre agent
+    let var_placed true
+    ifelse (count(robots with [distance myself < 1]) > 1)
+    [
+      let n (max-one-of robots with [distance myself < 1] [[who] of self]) ; Choisir le plus petit "who"
+      if (([who] of self < [who] of n) and ([ciblex] of n = [ciblex] of self and [cibley] of n = [cibley] of self))
+      [
+        assign-target ([who] of min-one-of points with [assigned = false] [distance myself])
+        set is_placed false
+        set var_placed false
+      ]
+    ]
+    [
+      let x ([ciblex] of self)
+      let y ([cibley] of self)
+      ask points with [xcor = x and ycor = y] [set assigned true]
+    ]
+    set is_placed var_placed
+  ]
+end
+
 to brain-blackboard-basic-stronger
   ; S'il n'a pas d'assignation, il regarde dans le blackboard le point le plus proche
   if (([assigned] of self) = false) [assign-point ([who] of min-one-of points [distance myself])]
@@ -369,20 +407,18 @@ to brain-blackboard-basic-stronger
   [fd 1]
   [
     ; S'il est arrivé et qu'il y a un autre agent
-    ifelse (count(robots with [distance myself < 1]) > 1)
+    let var_placed true
+    if (count(robots with [distance myself < 1]) > 1)
     [
-      let n (one-of robots with [distance myself < 1])
-      if (([who] of self < [who] of n) and ([ciblex] of n = [ciblex] of self))
+      let n (max-one-of robots with [distance myself < 1] [[who] of self]) ; Choisir le plus petit "who"
+      if (([who] of self < [who] of n) and ([ciblex] of n = [ciblex] of self and [cibley] of n = [cibley] of self))
       [
-        assign-point ([who] of min-one-of points with [is_placed = false] [distance myself])
+        assign-point ([who] of min-one-of points with [assigned = false] [distance myself])
         set is_placed false
+        set var_placed false
       ]
     ]
-    [
-      ; Quand il est arrivé, il dit qu'il est placé et que son point est occupé
-      set is_placed true
-
-    ]
+    set is_placed var_placed
   ]
 end
 
@@ -545,6 +581,7 @@ to go-blackboard-basic
   if (agent-behaviour = "dump") [ask robots [brain-blackboard-basic-dump]]
   if (agent-behaviour = "near") [ask robots [brain-blackboard-basic-near]]
   if (agent-behaviour = "stronger") [ask robots [brain-blackboard-basic-stronger]]
+  if (agent-behaviour = "stronger-target") [ask robots [brain-blackboard-basic-stronger-target]]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
