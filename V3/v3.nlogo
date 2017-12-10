@@ -2,7 +2,7 @@ extensions [matrix]
 globals [m leader-created sum-distance moy]
 breed [robots robot]
 breed [points point]
-robots-own [assigned leader ciblex cibley id_agent is_placed last_move neighbours dist-neighbours role]
+robots-own [assigned leader ciblex cibley id_agent is_placed last_move neighbours dist-neighbours role blackboard]
 points-own [assigned placed is-vertex id_agent]
 
 ; m matrice utilisée pour calculé l'algorithme hongrois
@@ -315,6 +315,7 @@ to setup
     set last_move (-1)
     set neighbours nobody
     set dist-neighbours []
+    set blackboard []
   ]
   ifelse method = "hungarian" [setup-hungarian-method]
   [if method = "blackboard" [setup-blackboard-basic]]
@@ -398,6 +399,32 @@ to brain-blackboard-basic-stronger-target
   ]
 end
 
+to brain-individual-blackboard
+  ; s'il n'a pas d'assignation, il va au point le plus proche
+  if (([assigned] of self) = false) [assign-target ([who] of min-one-of points [distance myself])]
+
+  ; S'il n'est pas arrivé à destination, il avance
+  facexy ciblex cibley
+  ifelse ((distancexy ciblex cibley) > 0.5)
+  [move-fd]
+  [
+    ; S'il est arrivé et qu'il y a un autre agent
+    if (count(robots with [distance myself < 1]) > 1)
+    [
+      ; Récupère l'agent avec le plus gros ID
+      let n (max-one-of robots with [distance myself < 1] [[who] of self])
+
+      ; Si son id est plus grand et qu'il a la même cible que moi
+      if (([who] of self < [who] of n) and ([ciblex] of n = [ciblex] of self and [cibley] of n = [cibley] of self))
+      [
+        ; J'enregistre ce point comme perdu
+        set blackboard lput (first ([who] of points with [xcor = [ciblex] of myself and ycor = [cibley] of myself])) blackboard
+        assign-target ([who] of min-one-of points with [empty? (filter [i -> i = who] [blackboard] of myself)] [distance myself])
+      ]
+    ]
+  ]
+end
+
 to brain-blackboard-basic-stronger
   ; S'il n'a pas d'assignation, il regarde dans le blackboard le point le plus proche
   if (([assigned] of self) = false) [assign-point ([who] of min-one-of points [distance myself])]
@@ -458,8 +485,6 @@ to move-leader
 end
 
 to-report in-army
-
-
   report true
 end
 
@@ -584,6 +609,7 @@ to go-blackboard-basic
   if (agent-behaviour = "near") [ask robots [brain-blackboard-basic-near]]
   if (agent-behaviour = "stronger") [ask robots [brain-blackboard-basic-stronger]]
   if (agent-behaviour = "stronger-target") [ask robots [brain-blackboard-basic-stronger-target]]
+  if (agent-behaviour = "individual-blackboard") [ask robots [brain-individual-blackboard]]
 end
 
 ;effectue 100 simulation et calcul une moyenne des distance parcourue
@@ -662,12 +688,12 @@ HORIZONTAL
 CHOOSER
 194
 232
-355
+395
 277
 agent-behaviour
 agent-behaviour
-"dump" "near" "stronger" "stronger-target"
-3
+"dump" "near" "stronger" "stronger-target" "individual-blackboard"
+4
 
 CHOOSER
 195
@@ -736,7 +762,7 @@ CHOOSER
 mover
 mover
 "static" "centralized" "leader" "army"
-0
+2
 
 SLIDER
 378
@@ -747,7 +773,7 @@ directions
 directions
 0
 360
-360.0
+0.0
 1
 1
 NIL
