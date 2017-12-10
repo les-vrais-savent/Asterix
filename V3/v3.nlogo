@@ -34,14 +34,6 @@ to assign-target [point_id]
          set assigned true          ; ce robot est affecte
 end
 
-; Crée une forme selon le nb de sommet
-to-report shape-to-nb-vertex
-  if forms-choice = "line" [report 2]
-  if forms-choice = "triangle" [report 3]
-  if forms-choice = "square" [report 4]
-  if forms-choice = "5-vertex" [report 5]
-end
-
 ; Renvoi une liste contenant, pour chaque coté, le nombre de points à placer sur ce coté
 to-report gen-nb-point-per-edges [nb-edges nb-points]
   let nb-moy (int (nb-points / nb-edges))
@@ -79,7 +71,6 @@ to place-points-between [nb-points p1 p2]
 end
 
 to set-point
-  let nb-vertex shape-to-nb-vertex
   let nb-points nb-agents
 
 ; creation de la forme (shape)
@@ -302,7 +293,12 @@ end
 
 
 to setup
-  ca
+  clear-ticks
+  clear-turtles
+  clear-patches
+  clear-drawing
+  clear-all-plots
+  clear-output
   reset-ticks
   ; creation de la forme (shape)
   set-point
@@ -336,7 +332,7 @@ end
 
 to setup-hungarian-method
   init-m
-  print matrix:pretty-print-text m
+  ;print matrix:pretty-print-text m
   ; affectation (assignment) des points aux robots
   let point-ids hungarian_method
 
@@ -592,17 +588,17 @@ to go-blackboard-basic
   if (agent-behaviour = "stronger-target") [ask robots [brain-blackboard-basic-stronger-target]]
 end
 
-;effectue 30 simulation et calcul une moyenne des distance parcourue
+;effectue 100 simulation et calcul une moyenne des distance parcourue
 to simulation
   set moy 0
 
-  foreach (range 30) [x ->
+  foreach (range 100) [x ->
     setup
     while [not all? robots [is_placed]] [go]
     set moy (moy + sum-distance)
     set sum-distance 0
   ]
-  set moy (moy / 30)
+  set moy (moy / 100)
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -661,16 +657,6 @@ sum [distancexy ciblex cibley] of robots
 1
 11
 
-CHOOSER
-180
-128
-318
-173
-forms-choice
-forms-choice
-"line" "triangle" "square" "5-vertex"
-3
-
 SLIDER
 180
 26
@@ -680,7 +666,7 @@ nb-agents
 nb-agents
 0
 100
-75.0
+20.0
 1
 1
 NIL
@@ -694,7 +680,7 @@ CHOOSER
 agent-behaviour
 agent-behaviour
 "dump" "near" "stronger"
-2
+1
 
 CHOOSER
 181
@@ -704,7 +690,7 @@ CHOOSER
 method
 method
 "hungarian" "blackboard"
-0
+1
 
 BUTTON
 21
@@ -749,7 +735,7 @@ form-size
 form-size
 0
 100
-62.0
+20.0
 1
 1
 NIL
@@ -818,6 +804,21 @@ NIL
 NIL
 NIL
 1
+
+SLIDER
+182
+123
+354
+156
+nb-vertex
+nb-vertex
+3
+20
+5.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
