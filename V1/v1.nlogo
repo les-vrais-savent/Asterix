@@ -320,7 +320,7 @@ end
 
 to go
   ask robots [facexy ciblex cibley]
-  ask robots [ ifelse ((distancexy ciblex cibley) > 0.5) [move-fd 1][setxy ciblex cibley set label-color green] ]
+  ask robots [ ifelse ((distancexy ciblex cibley) > 0.5) [move-fd][setxy ciblex cibley set label-color green] ]
   if (all? robots [xcor = ciblex and ycor = cibley]) [stop]
   tick
 end
@@ -411,6 +411,17 @@ MONITOR
 309
 Total distance
 sum-distance
+17
+1
+11
+
+MONITOR
+10
+317
+67
+362
+Ticks
+ticks
 17
 1
 11

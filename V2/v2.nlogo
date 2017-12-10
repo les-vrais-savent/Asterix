@@ -101,7 +101,6 @@ to set-point
     ask points [show distance vertex]
     ask (min-n-of 2 (points with [id != who]) [distance vertex]) with [placed = false] [set vertex-list (lput (list self vertex) vertex-list)]
   ]
-  ;show vertex-list
 
   ;; Positionement des points sur les cotés
 
