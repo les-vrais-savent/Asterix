@@ -16,7 +16,6 @@ to move-fd
   set sum-distance sum-distance + 1
 end
 
-
 ; assigne le point d'id point_id au robot appelant
 to assign-point [point_id]
   let p (point point_id);one-of (points with[id_agent = point_id]))
@@ -382,18 +381,18 @@ to brain-blackboard-basic-stronger-target
     let var_placed true
     ifelse (count(robots with [distance myself < 1]) > 1)
     [
-      let n (max-one-of robots with [distance myself < 1] [[who] of self]) ; Choisir le plus petit "who"
+      let n (max-one-of robots with [distance myself < 1] [[who] of self])
       if (([who] of self < [who] of n) and ([ciblex] of n = [ciblex] of self and [cibley] of n = [cibley] of self))
       [
-        assign-target ([who] of min-one-of points with [assigned = false] [distance myself])
-        set is_placed false
+        assign-target ([who] of min-one-of points with [assigned = false and (xcor != [ciblex] of myself or ycor != [cibley] of myself)] [distance myself])
         set var_placed false
       ]
     ]
     [
       let x ([ciblex] of self)
       let y ([cibley] of self)
-      ask points with [xcor = x and ycor = y] [set assigned true]
+      ;assign-point ([who] of min-one-of points with [assigned = false] [distance myself])
+      ask points with [xcor = x and ycor = y] [set assigned true set color green]
     ]
     set is_placed var_placed
   ]
@@ -412,11 +411,10 @@ to brain-blackboard-basic-stronger
     let var_placed true
     if (count(robots with [distance myself < 1]) > 1)
     [
-      let n (max-one-of robots with [distance myself < 1] [[who] of self]) ; Choisir le plus petit "who"
+      let n (max-one-of robots with [distance myself < 1] [[who] of self])
       if (([who] of self < [who] of n) and ([ciblex] of n = [ciblex] of self and [cibley] of n = [cibley] of self))
       [
         assign-point ([who] of min-one-of points with [assigned = false] [distance myself])
-        set is_placed false
         set var_placed false
       ]
     ]
@@ -655,7 +653,7 @@ nb-agents
 nb-agents
 0
 100
-20.0
+87.0
 1
 1
 NIL
@@ -669,7 +667,7 @@ CHOOSER
 agent-behaviour
 agent-behaviour
 "dump" "near" "stronger" "stronger-target"
-1
+3
 
 CHOOSER
 195
@@ -724,7 +722,7 @@ form-size
 form-size
 0
 100
-20.0
+80.0
 1
 1
 NIL
