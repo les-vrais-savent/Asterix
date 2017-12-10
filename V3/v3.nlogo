@@ -2,20 +2,17 @@ extensions [matrix]
 globals [m leader-created]
 breed [robots robot]
 breed [points point]
-robots-own [assigned leader pointx pointy ciblex cibley id_agent is_placed last_move neighbours dist-neighbours role]
+robots-own [assigned leader ciblex cibley id_agent is_placed last_move neighbours dist-neighbours role]
 points-own [assigned placed is-vertex id_agent]
 
 ; m matrice utilisée pour calculé l'algorithme hongrois
 ; leader        : booleen permettant de savoir qui est le leader
-; pointx pointy : l'un des points de la shape qui lui a été affecté
 ; ciblex cibley : la position où il devra aller
 ; assigned      : indique s'il a déja une cible ou pas
 
 ; assigne le point d'id point_id au robot appelant
 to assign-point [point_id]
   let p (point point_id);one-of (points with[id_agent = point_id]))
-         set pointx ([xcor] of p)
-         set pointY ([ycor] of p)
          set ciblex ([xcor] of p)
          set cibley ([ycor] of p)
          set assigned true          ; ce robot est affecte
@@ -30,15 +27,52 @@ to-report shape-to-nb-vertex
   if forms-choice = "5-vertex" [report 5]
 end
 
+; Renvoi une liste contenant, pour chaque coté, le nombre de points à placer sur ce coté
+to-report gen-nb-point-per-edges [nb-edges nb-points]
+  let nb-moy (int (nb-points / nb-edges))
+  let more-points (nb-points mod nb-edges)
+
+  let result-list []
+
+  foreach (range more-points) [ x ->
+    set result-list (insert-item 0 result-list (nb-moy + 1))
+  ]
+
+  foreach (range (nb-edges - more-points)) [x ->
+   set result-list (insert-item 0 result-list nb-moy)
+  ]
+
+  report result-list
+end
+
+to place-points-between [nb-points p1 p2]
+  let x-vector ([xcor] of p2 - [xcor] of p1)
+  let y-vector ([ycor] of p2 - [ycor] of p1)
+
+  ;; création de la liste des coordonées des points à placer entre ces deux sommets
+  let coords (map [[i] -> list ([xcor] of p1 + (i * x-vector / (nb-points + 1))) ([ycor] of p1 + (i * y-vector / (nb-points + 1)))] (range 1 (nb-points + 1)))
+
+  foreach coords [[coord-tuple] ->
+    if any? (points with [placed = false]) [
+
+      ask one-of points with [placed = false] [
+        set placed true
+        let x (first coord-tuple)
+        let y (last coord-tuple)
+        setxy x y
+  ]]]
+end
+
 to set-point
   let nb-vertex shape-to-nb-vertex
   let nb-points nb-agents
+
 ; creation de la forme (shape)
   let radius form-size
-  let nb-points-per-edge ((nb-points - nb-vertex) / nb-vertex)
-  ;; Création des points
+  let nb-points-per-edge-list (gen-nb-point-per-edges nb-vertex (nb-points - nb-vertex))
+
+  ;; Création des sommets
   create-points nb-vertex [
-    set shape "circle"
     set assigned false
     set color white
     set id_agent who
@@ -52,12 +86,6 @@ to set-point
   let angles (map [[x] -> x * 360 / nb-vertex] (range nb-vertex))
   foreach angles [[angle] -> ask one-of points with [placed = false and is-vertex] [
     set placed true
-
-    ;;création des couples de sommets
-    ;let liste []
-    ;ask points with [is-vertex and placed = false] [set liste (lput self liste)]
-
-    ;foreach liste [[vertex] -> set vertex-list (lput (list self vertex) vertex-list)]
     setxy (radius * (cos angle)) (radius * (sin angle))
   ]]
 
@@ -72,7 +100,6 @@ to set-point
     ask points [show distance vertex]
     ask (min-n-of 2 (points with [id != who]) [distance vertex]) with [placed = false] [set vertex-list (lput (list self vertex) vertex-list)]
   ]
-  ;show vertex-list
 
   ;; Positionement des points sur les cotés
 
@@ -85,53 +112,10 @@ to set-point
     set is-vertex true
   ]
 
-  foreach (but-first vertex-list) [[vertex-tuple] ->
-    let a (first vertex-tuple)
-    let b (last vertex-tuple)
-
-    let x-vector ([xcor] of b - [xcor] of a)
-    let y-vector ([ycor] of b - [ycor] of a)
-
-    ;; création de la liste des coordonées des points à placer entre ces deux sommets
-    let coords (map [[i] -> list ([xcor] of a + (i * x-vector / (nb-points-per-edge))) ([ycor] of a + (i * y-vector / (nb-points-per-edge )))] (range 1 (nb-points-per-edge)))
-
-    foreach coords [[coord-tuple] ->
-      if any? (points with [placed = false]) [
-
-        ask one-of points with [placed = false] [
-          set placed true
-          let x (first coord-tuple)
-          let y (last coord-tuple)
-          setxy x y
-    ]]]
-  ]
-
-  ;; On place les points sur le dernier coté
-  ;print ("toto", nb-points-per-edge)
-  if (((nb-points - nb-vertex) mod nb-vertex) != 0) [set nb-points-per-edge (nb-points-per-edge + (((nb-points - nb-vertex) mod nb-vertex)))]
-  ;print "toto" nb-points-per-edge
-
-  let vertex-tuple (first vertex-list)
-  let a (first vertex-tuple)
-  let b (last vertex-tuple)
-
-  let x-vector ([xcor] of b - [xcor] of a)
-  let y-vector ([ycor] of b - [ycor] of a)
-
-  ;; création de la liste des coordonées des points à placer entre ces deux sommets
-  let coords (map [[i] -> list ([xcor] of a + (i * x-vector / (nb-points-per-edge))) ([ycor] of a + (i * y-vector / (nb-points-per-edge)))] (range 1 (nb-points-per-edge)))
-
-  foreach coords [[coord-tuple] ->
-    if any? (points with [placed = false]) [
-
-      ask one-of points with [placed = false] [
-        set placed true
-        let x (first coord-tuple)
-        let y (last coord-tuple)
-        setxy x y
-  ]]]
+  (foreach vertex-list nb-points-per-edge-list [ [vertex-tuple local-nb-points] ->
+    place-points-between local-nb-points (first vertex-tuple) (last vertex-tuple)
+  ])
 end
-
 to m-set [i j x]
   matrix:set m i j x
 end
@@ -151,8 +135,6 @@ to init-m
   set m (matrix:make-constant (nb-agents) (nb-agents) 0)
   ;let lead (one-of robots with [leader = true])
   ask points with [assigned = false][
-    ;let realx ([xcor] of lead  - [pointx] of lead + [xcor] of self)
-    ;let realy ([ycor] of lead  - [pointy] of lead + [ycor] of self)
     let realx ([xcor] of self)
     let realy ([ycor] of self)
     ask robots with [leader = false] [
@@ -366,7 +348,7 @@ end
 ; Si il est déjà pris, il cherche le second le plus proche, etc..
 to brain-blackboard-basic-near
   ; S'il n'a pas d'assignation, il regarde dans le blackboard le point non assigné le plus proche
-  if (([assigned] of self) = false) [assign-point ([who] of min-one-of points with [assigned = false] [distance self])]
+  if (([assigned] of self) = false) [assign-point ([who] of min-one-of points with [assigned = false] [distance myself])]
 
   ; Si il n'est pas arrivé à destination, il avance
   facexy ciblex cibley
@@ -379,7 +361,7 @@ end
 ; sinon se met sur le point
 to brain-blackboard-basic-stronger
   ; S'il n'a pas d'assignation, il regarde dans le blackboard le point le plus proche
-  if (([assigned] of self) = false) [assign-point ([who] of min-one-of points [distance self])]
+  if (([assigned] of self) = false) [assign-point ([who] of min-one-of points [distance myself])]
 
   ; S'il n'est pas arrivé à destination, il avance
   facexy ciblex cibley
@@ -392,11 +374,15 @@ to brain-blackboard-basic-stronger
       let n (one-of robots with [distance myself < 1])
       if (([who] of self < [who] of n) and ([ciblex] of n = [ciblex] of self))
       [
-        assign-point ([who] of min-one-of points with [assigned = false] [distance self])
+        assign-point ([who] of min-one-of points with [is_placed = false] [distance myself])
         set is_placed false
       ]
     ]
-    [set is_placed true]
+    [
+      ; Quand il est arrivé, il dit qu'il est placé et que son point est occupé
+      set is_placed true
+
+    ]
   ]
 end
 
@@ -575,8 +561,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 -100
 100
@@ -625,7 +611,7 @@ CHOOSER
 forms-choice
 forms-choice
 "line" "triangle" "square" "5-vertex"
-2
+3
 
 SLIDER
 180
@@ -636,7 +622,7 @@ nb-agents
 nb-agents
 0
 100
-55.0
+75.0
 1
 1
 NIL
@@ -650,7 +636,7 @@ CHOOSER
 agent-behaviour
 agent-behaviour
 "dump" "near" "stronger"
-1
+2
 
 CHOOSER
 181
@@ -660,7 +646,7 @@ CHOOSER
 method
 method
 "hungarian" "blackboard"
-0
+1
 
 BUTTON
 21
@@ -705,7 +691,7 @@ form-size
 form-size
 0
 100
-48.0
+62.0
 1
 1
 NIL
@@ -719,7 +705,7 @@ CHOOSER
 mover
 mover
 "static" "centralized" "leader" "army"
-3
+0
 
 SLIDER
 378
@@ -730,7 +716,7 @@ directions
 directions
 0
 360
-105.0
+273.0
 1
 1
 NIL

@@ -103,7 +103,6 @@ to set-point
     ask points [show distance vertex]
     ask (min-n-of 2 (points with [id != who]) [distance vertex]) with [placed = false] [set vertex-list (lput (list self vertex) vertex-list)]
   ]
-  ;show vertex-list
 
   ;; Positionement des points sur les cotés
 
@@ -462,7 +461,7 @@ CHOOSER
 forms-choice
 forms-choice
 "line" "triangle" "square" "5-vertex"
-2
+3
 
 SLIDER
 345
@@ -473,7 +472,7 @@ nb-agents
 nb-agents
 0
 100
-12.0
+72.0
 1
 1
 NIL
