@@ -1,5 +1,5 @@
 extensions [matrix]
-globals [m nb-robots]
+globals [m nb-robots sum-distance]
 breed [robots robot]
 breed [points point]
 robots-own [assigned leader pointx pointy ciblex cibley]
@@ -11,6 +11,12 @@ points-own [assigned placed is-vertex]
 ; ciblex cibley : la position où il devra aller
 ; assigned      : indique s'il a déja une cible ou pas
 
+; Fonction de mouvement d'un agent
+to move-fd
+  fd 1
+  set sum-distance sum-distance + 1
+end
+
 ; assigne le point d'id point_id au robot appelant
 to assign-point [point_id]
   let p (one-of (points with[label = point_id]))
@@ -19,8 +25,6 @@ to assign-point [point_id]
          set assigned true          ; ce robot est affecte
          ask p [set assigned true]  ; ce point est affecte
 end
-
-
 
 to m-set [i j x]
   matrix:set m i j x
@@ -270,6 +274,7 @@ end
 to setup
   ca
   reset-ticks
+  set sum-distance 0
   set nb-robots 24
   set-point 6 nb-robots
   ; creation des robots
@@ -315,7 +320,7 @@ end
 
 to go
   ask robots [facexy ciblex cibley]
-  ask robots [ ifelse ((distancexy ciblex cibley) > 0.5) [fd 1][setxy ciblex cibley set label-color green] ]
+  ask robots [ ifelse ((distancexy ciblex cibley) > 0.5) [move-fd 1][setxy ciblex cibley set label-color green] ]
   if (all? robots [xcor = ciblex and ycor = cibley]) [stop]
   tick
 end
@@ -348,10 +353,10 @@ ticks
 30.0
 
 BUTTON
-33
-57
-97
-90
+9
+20
+73
+53
 Setup
 setup
 NIL
@@ -365,10 +370,10 @@ NIL
 1
 
 BUTTON
-36
-131
-99
-164
+9
+61
+72
+94
 Run
 go
 T
@@ -382,10 +387,10 @@ NIL
 1
 
 PLOT
-5
-267
-205
-417
+11
+101
+211
+251
 plot 1
 NIL
 NIL
@@ -400,12 +405,12 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot sum [distancexy ciblex cibley] of robots"
 
 MONITOR
-53
-449
-168
-494
-sum distances
-sum [distancexy ciblex cibley] of robots
+10
+264
+125
+309
+Total distance
+sum-distance
 17
 1
 11
