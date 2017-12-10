@@ -1,5 +1,5 @@
 extensions [matrix]
-globals [m]
+globals [m sum-distance]
 breed [robots robot]
 breed [points point]
 robots-own [assigned leader ciblex cibley id_agent is_placed]
@@ -10,6 +10,13 @@ points-own [assigned placed is-vertex id_agent]
 ; pointx pointy : l'un des points de la shape qui lui a été affecté
 ; ciblex cibley : la position où il devra aller
 ; assigned      : indique s'il a déja une cible ou pas
+
+; Fonction de mouvement d'un agent
+to move-fd
+  fd 1
+  set sum-distance sum-distance + 1
+end
+
 
 ; assigne le point d'id point_id au robot appelant
 to assign-point [point_id]
@@ -340,7 +347,7 @@ to brain-blackboard-basic-dump
 
   ; Si il n'est pas arrivé à destination, il avance
   facexy ciblex cibley
-  ifelse ((distancexy ciblex cibley) > 0.5) [fd 1][set is_placed true]
+  ifelse ((distancexy ciblex cibley) > 0.5) [move-fd][set is_placed true]
 end
 
 ; Fonction de décision des agents
@@ -352,7 +359,7 @@ to brain-blackboard-basic-near
 
   ; Si il n'est pas arrivé à destination, il avance
   facexy ciblex cibley
-  ifelse ((distancexy ciblex cibley) > 0.5) [fd 1][set is_placed true]
+  ifelse ((distancexy ciblex cibley) > 0.5) [move-fd][set is_placed true]
 end
 
 ; Fonction décision des agents
@@ -366,7 +373,7 @@ to brain-blackboard-basic-stronger
   ; S'il n'est pas arrivé à destination, il avance
   facexy ciblex cibley
   ifelse ((distancexy ciblex cibley) > 0.5)
-  [fd 1]
+  [move-fd]
   [
     ; S'il est arrivé et qu'il y a un autre agent
     let var_placed true
@@ -393,7 +400,7 @@ end
 
 to go-hungarian-method
   ask robots [facexy ciblex cibley]
-  ask robots [ ifelse ((distancexy ciblex cibley) > 0.5) [fd 1][set is_placed true] ]
+  ask robots [ ifelse ((distancexy ciblex cibley) > 0.5) [move-fd][set is_placed true] ]
 end
 
 ; Fonction boucle pour les actions de chaque agents
