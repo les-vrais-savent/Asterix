@@ -1,5 +1,5 @@
 extensions [matrix]
-globals [m leader-created]
+globals [m leader-created sum-distance moy]
 breed [robots robot]
 breed [points point]
 robots-own [assigned leader ciblex cibley id_agent is_placed last_move neighbours dist-neighbours role]
@@ -9,6 +9,13 @@ points-own [assigned placed is-vertex id_agent]
 ; leader        : booleen permettant de savoir qui est le leader
 ; ciblex cibley : la position où il devra aller
 ; assigned      : indique s'il a déja une cible ou pas
+
+; Fonction de mouvement d'un agent
+to move-fd
+  fd 1
+  set sum-distance sum-distance + 1
+end
+
 
 ; assigne le point d'id point_id au robot appelant
 to assign-point [point_id]
@@ -105,7 +112,6 @@ to set-point
   foreach liste [[vertex] ->
     let id ([who] of vertex)
     ask vertex [set placed true]
-    ask points [show distance vertex]
     ask (min-n-of 2 (points with [id != who]) [distance vertex]) with [placed = false] [set vertex-list (lput (list self vertex) vertex-list)]
   ]
 
@@ -348,7 +354,7 @@ to brain-blackboard-basic-dump
 
   ; Si il n'est pas arrivé à destination, il avance
   facexy ciblex cibley
-  ifelse ((distancexy ciblex cibley) > 0.5) [fd 1][set is_placed true]
+  ifelse ((distancexy ciblex cibley) > 0.5) [move-fd][set is_placed true]
 end
 
 ; Fonction de décision des agents
@@ -360,7 +366,7 @@ to brain-blackboard-basic-near
 
   ; Si il n'est pas arrivé à destination, il avance
   facexy ciblex cibley
-  ifelse ((distancexy ciblex cibley) > 0.5) [fd 1][set is_placed true]
+  ifelse ((distancexy ciblex cibley) > 0.5) [move-fd][set is_placed true]
 end
 
 ; Fonction décision des agents
@@ -374,7 +380,7 @@ to brain-blackboard-basic-stronger-target
   ; S'il n'est pas arrivé à destination, il avance
   facexy ciblex cibley
   ifelse ((distancexy ciblex cibley) > 0.5)
-  [fd 1]
+  [move-fd]
   [
     ; S'il est arrivé et qu'il y a un autre agent
     let var_placed true
@@ -404,7 +410,7 @@ to brain-blackboard-basic-stronger
   ; S'il n'est pas arrivé à destination, il avance
   facexy ciblex cibley
   ifelse ((distancexy ciblex cibley) > 0.5)
-  [fd 1]
+  [move-fd]
   [
     ; S'il est arrivé et qu'il y a un autre agent
     let var_placed true
@@ -554,6 +560,8 @@ to move-army
   ]
 end
 
+
+
 to go
   ; Si tout les agents sont placés, on est dans la période de movement
   ifelse (all? robots [is_placed])
@@ -573,7 +581,7 @@ end
 
 to go-hungarian-method
   ask robots [facexy ciblex cibley]
-  ask robots [ifelse ((distancexy ciblex cibley) > 0.5) [fd 1][set is_placed true]]
+  ask robots [ifelse ((distancexy ciblex cibley) > 0.5) [move-fd][set is_placed true]]
 end
 
 ; Fonction boucle pour les actions de chaque agents
@@ -582,6 +590,19 @@ to go-blackboard-basic
   if (agent-behaviour = "near") [ask robots [brain-blackboard-basic-near]]
   if (agent-behaviour = "stronger") [ask robots [brain-blackboard-basic-stronger]]
   if (agent-behaviour = "stronger-target") [ask robots [brain-blackboard-basic-stronger-target]]
+end
+
+;effectue 30 simulation et calcul une moyenne des distance parcourue
+to simulation
+  set moy 0
+
+  foreach (range 30) [x ->
+    setup
+    while [not all? robots [is_placed]] [go]
+    set moy (moy + sum-distance)
+    set sum-distance 0
+  ]
+  set moy (moy / 30)
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -683,7 +704,7 @@ CHOOSER
 method
 method
 "hungarian" "blackboard"
-1
+0
 
 BUTTON
 21
@@ -758,6 +779,45 @@ directions
 1
 NIL
 HORIZONTAL
+
+MONITOR
+6
+352
+146
+397
+distance parcourue
+sum-distance
+17
+1
+11
+
+MONITOR
+-3
+288
+159
+333
+moyenne des distance
+moy
+17
+1
+11
+
+BUTTON
+65
+124
+170
+157
+NIL
+simulation\n
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
