@@ -629,10 +629,10 @@ ticks
 30.0
 
 PLOT
-164
-324
-460
-554
+8
+294
+304
+524
 plot 1
 NIL
 NIL
@@ -646,22 +646,11 @@ false
 PENS
 "default" 1.0 0 -16777216 true "" "plot sum [distancexy ciblex cibley] of robots"
 
-MONITOR
-32
-411
-147
-456
-sum distances
-sum [distancexy ciblex cibley] of robots
-17
-1
-11
-
 SLIDER
-180
-26
-352
-59
+197
+24
+369
+57
 nb-agents
 nb-agents
 0
@@ -673,30 +662,30 @@ NIL
 HORIZONTAL
 
 CHOOSER
-180
-242
-323
-287
+194
+232
+355
+277
 agent-behaviour
 agent-behaviour
-"dump" "near" "stronger"
+"dump" "near" "stronger" "stronger-target"
 1
 
 CHOOSER
-181
-183
-319
-228
+195
+152
+333
+197
 method
 method
 "hungarian" "blackboard"
 1
 
 BUTTON
-21
-29
-94
-62
+9
+32
+82
+65
 setup
 setup
 NIL
@@ -710,10 +699,10 @@ NIL
 1
 
 BUTTON
-21
-66
-84
-99
+9
+69
+72
+102
 go
 go
 T
@@ -727,10 +716,10 @@ NIL
 1
 
 SLIDER
-179
-68
-351
-101
+196
+66
+368
+99
 form-size
 form-size
 0
@@ -767,32 +756,32 @@ NIL
 HORIZONTAL
 
 MONITOR
-6
-352
-146
-397
-distance parcourue
+9
+205
+186
+250
+Total distance parcourue
 sum-distance
 17
 1
 11
 
 MONITOR
--3
-288
-159
-333
-moyenne des distance
+9
+151
+171
+196
+Moyenne des distance
 moy
 17
 1
 11
 
 BUTTON
-65
-124
-170
-157
+10
+107
+115
+140
 NIL
 simulation\n
 NIL
@@ -806,10 +795,10 @@ NIL
 1
 
 SLIDER
-182
-123
-354
-156
+195
+108
+367
+141
 nb-vertex
 nb-vertex
 3
@@ -819,6 +808,16 @@ nb-vertex
 1
 NIL
 HORIZONTAL
+
+TEXTBOX
+198
+207
+361
+225
+Behaviour for blackboard\n
+12
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
