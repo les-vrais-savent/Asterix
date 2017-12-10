@@ -2,7 +2,7 @@ extensions [matrix]
 globals [m]
 breed [robots robot]
 breed [points point]
-robots-own [assigned leader pointx pointy ciblex cibley id_agent is_placed]
+robots-own [assigned leader ciblex cibley id_agent is_placed]
 points-own [assigned placed is-vertex id_agent]
 
 ; m matrice utilisée pour calculé l'algorithme hongrois
@@ -14,8 +14,6 @@ points-own [assigned placed is-vertex id_agent]
 ; assigne le point d'id point_id au robot appelant
 to assign-point [point_id]
   let p (point point_id);one-of (points with[id_agent = point_id]))
-         set pointx ([xcor] of p)
-         set pointY ([ycor] of p)
          set ciblex ([xcor] of p)
          set cibley ([ycor] of p)
          set assigned true          ; ce robot est affecte
@@ -142,8 +140,6 @@ to init-m
   set m (matrix:make-constant (nb-agents) (nb-agents) 0)
   ;let lead (one-of robots with [leader = true])
   ask points with [assigned = false][
-    ;let realx ([xcor] of lead  - [pointx] of lead + [xcor] of self)
-    ;let realy ([ycor] of lead  - [pointy] of lead + [ycor] of self)
     let realx ([xcor] of self)
     let realy ([ycor] of self)
     ask robots with [leader = false] [
@@ -302,7 +298,16 @@ to setup
   ; creation de la forme (shape)
   set-point
   ; creation des robots
-  create-robots nb-agents [set shape "person" set size 4 set color red setxy random-pxcor random-pycor set leader false set assigned false set id_agent (who - nb-agents) set is_placed false]
+  create-robots nb-agents [
+    set shape "person"
+    set size 4
+    set color red
+    setxy random-pxcor random-pycor
+    set leader false
+    set assigned false
+    set id_agent (who - nb-agents)
+    set is_placed false
+  ]
   ifelse method = "hungarian" [setup-hungarian-method]
   [if method = "blackboard" [setup-blackboard-basic]]
 
@@ -344,7 +349,7 @@ end
 ; Si il est déjà pris, il cherche le second le plus proche, etc..
 to brain-blackboard-basic-near
   ; S'il n'a pas d'assignation, il regarde dans le blackboard le point non assigné le plus proche
-  if (([assigned] of self) = false) [assign-point ([who] of min-one-of points with [assigned = false] [distance self])]
+  if (([assigned] of self) = false) [assign-point ([who] of min-one-of points with [assigned = false] [distance myself])]
 
   ; Si il n'est pas arrivé à destination, il avance
   facexy ciblex cibley
@@ -357,7 +362,7 @@ end
 ; sinon se met sur le point
 to brain-blackboard-basic-stronger
   ; S'il n'a pas d'assignation, il regarde dans le blackboard le point le plus proche
-  if (([assigned] of self) = false) [assign-point ([who] of min-one-of points [distance self])]
+  if (([assigned] of self) = false) [assign-point ([who] of min-one-of points [distance myself])]
 
   ; S'il n'est pas arrivé à destination, il avance
   facexy ciblex cibley
@@ -365,16 +370,18 @@ to brain-blackboard-basic-stronger
   [fd 1]
   [
     ; S'il est arrivé et qu'il y a un autre agent
-    ifelse (count(robots with [distance myself < 1]) > 1)
+    let var_placed true
+    if (count(robots with [distance myself < 1]) > 1)
     [
-      let n (one-of robots with [distance myself < 1])
-      if (([who] of self < [who] of n) and ([ciblex] of n = [ciblex] of self))
+      let n (max-one-of robots with [distance myself < 1] [[who] of self]) ; Choisir le plus petit "who"
+      if (([who] of self < [who] of n) and ([ciblex] of n = [ciblex] of self and [cibley] of n = [cibley] of self))
       [
-        assign-point ([who] of min-one-of points with [assigned = false] [distance self])
+        assign-point ([who] of min-one-of points with [assigned = false] [distance myself])
         set is_placed false
+        set var_placed false
       ]
     ]
-    [set is_placed true]
+    set is_placed var_placed
   ]
 end
 
@@ -462,7 +469,7 @@ CHOOSER
 forms-choice
 forms-choice
 "line" "triangle" "square" "5-vertex"
-2
+3
 
 SLIDER
 345
@@ -473,7 +480,7 @@ nb-agents
 nb-agents
 0
 100
-12.0
+59.0
 1
 1
 NIL
@@ -540,9 +547,9 @@ SLIDER
 97
 form-size
 form-size
-0
+10
 100
-53.0
+10.0
 1
 1
 NIL
