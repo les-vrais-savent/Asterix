@@ -1,0 +1,32 @@
+# Idée pour l'algo de création de forme
+
+Variables:
+ * Nb total d'agents
+ * Nb de sommet (2 = ligne, 3 = triangle, 4 = carré...)
+ * Taille de la forme (rayon)
+
+Algo:
+1. Mettre les sommets de la forme:
+ * Calcul des positions des n sommets selon la
+   taille de la forme
+ * Placement des n points
+
+2. Calculer le nb d'agent par ligne: (ex pour un carré)
+c1, c2, c3, c4 = 0 (nb d'agent par côté)
+ * nb agent restant / nb de sommet = K (nb agent par arête)
+c1, c2, c3, c4 = K
+ * nb agent restant % nb de sommet = J (nb agent à ajouter à certains côté)
+ * on boucle sur J: c1 += 1 puis c2 += 1, puis c3 += 1, ....
+
+3. Calculer pour chaque côté, le découpage du côté selon le nb d'agent:
+ * Pour chaque côté
+   * Calcul des positions pour n agents avec deux points a et b
+     * Mega astuce de la mort: Pas besoin de calcul complexe!
+       * Calcul distance |a - b|
+       * Division de cette distance par n+1 (nb agents sur le côté)
+         ce qui va en fait nous donner une vitesse v
+       * On crée une turtle sur le point a
+       * On fait face à b, et on avance de v, puis on positionne
+         le premier point.
+       * On réitère jusqu'à arriver à b.
+       * Et voilà, tous les points sont placés et centré selon leurs nb :-)

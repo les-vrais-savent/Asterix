@@ -314,7 +314,7 @@ to setup
   ; creation de la forme (shape)
   set-point
   ; creation des robots
-  create-robots nb-agents [set shape "person" set size 2 set color red setxy random-pxcor random-pycor set leader false set assigned false set id_agent (who - nb-agents) set is_placed false]
+  create-robots nb-agents [set shape "person" set size 4 set color red setxy random-pxcor random-pycor set leader false set assigned false set id_agent (who - nb-agents) set is_placed false]
   ifelse method = "hungarian" [setup-hungarian-method]
   [if method = "blackboard" [setup-blackboard-basic]]
 
@@ -485,7 +485,7 @@ nb-agents
 nb-agents
 0
 100
-42.0
+61.0
 1
 1
 NIL
@@ -554,7 +554,7 @@ form-size
 form-size
 0
 100
-32.0
+53.0
 1
 1
 NIL

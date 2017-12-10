@@ -1,8 +1,8 @@
 extensions [matrix]
-globals [m]
+globals [m leader-created]
 breed [robots robot]
 breed [points point]
-robots-own [assigned leader pointx pointy ciblex cibley id_agent is_placed]
+robots-own [assigned leader pointx pointy ciblex cibley id_agent is_placed last_move neighbours dist-neighbours role]
 points-own [assigned placed is-vertex id_agent]
 
 ; m matrice utilisée pour calculé l'algorithme hongrois
@@ -130,9 +130,6 @@ to set-point
         let y (last coord-tuple)
         setxy x y
   ]]]
-
-
-
 end
 
 to m-set [i j x]
@@ -314,10 +311,23 @@ to setup
   ; creation de la forme (shape)
   set-point
   ; creation des robots
-  create-robots nb-agents [set shape "person" set size 2 set color red setxy random-pxcor random-pycor set leader false set assigned false set id_agent (who - nb-agents) set is_placed false]
+  create-robots nb-agents
+  [
+    set shape "person"
+    set size 4
+    set color red
+    setxy random-pxcor random-pycor
+    set leader false
+    set assigned false
+    set id_agent (who - nb-agents)
+    set is_placed false
+    set last_move (-1)
+    set neighbours nobody
+    set dist-neighbours []
+  ]
   ifelse method = "hungarian" [setup-hungarian-method]
   [if method = "blackboard" [setup-blackboard-basic]]
-
+  set leader-created false
 end
 
 
@@ -390,16 +400,158 @@ to brain-blackboard-basic-stronger
   ]
 end
 
+; Fonction de mouvement centralisé
+to move-centralized
+  ask robots [set heading directions fd 1]
+end
+
+; Fonction de mouvement leader
+to move-leader
+  ; S'ils n'ont pas encore enregistré la distance avec leurs deux plus proches voisins
+  if (all? robots [neighbours = nobody])
+  [
+    ask robots [set neighbours (min-n-of 3 robots with [id_agent != [id_agent] of myself] [distance myself])
+                let l [distance myself] of turtle-set sort-on [who] neighbours
+                set dist-neighbours l]
+  ]
+
+  ; On fait bouger le leader dans la direction voulue
+  ask robots with [id_agent = 1] [set heading directions
+               fd 1
+               set last_move directions
+               set color green
+               set size 6]
+
+  ask robots with [id_agent != 1]
+  [
+   ; Récupère la moyenne des déplacements de ses n plus proches voisins
+   let d -1
+
+   if (length [last_move] of neighbours with [last_move >= 0] > 0)
+    [set d mean [last_move] of neighbours with [last_move >= 0]]
+   set heading d
+   if (d >= 0) [fd 1]
+   set last_move d
+  ]
+end
+
+to-report in-army
+
+
+  report true
+end
+
+; Fonction de mouvement armée
+to move-army
+  ; apparitions des 4 sous leaders
+  if (leader-created = false)
+  [
+  create-robots 1
+  [
+    set shape "person"
+    set size 4
+    set color yellow
+    setxy 20 -20
+    set leader false
+    set assigned false
+    set id_agent (who - nb-agents)
+    set is_placed true
+    set last_move (-1)
+    set neighbours nobody
+    set dist-neighbours []
+    set role 0
+    set label 0
+  ];
+
+    create-robots 1
+  [
+    set shape "person"
+    set size 4
+    set color yellow
+    setxy 20 20
+    set leader false
+    set assigned false
+    set id_agent (who - nb-agents)
+    set is_placed true
+    set last_move (-1)
+    set neighbours nobody
+    set dist-neighbours []
+    set role 1
+    set label 1
+  ];
+
+    create-robots 1
+  [
+    set shape "person"
+    set size 4
+    set color yellow
+    setxy -20 20
+    set leader false
+    set assigned false
+    set id_agent (who - nb-agents)
+    set is_placed true
+    set last_move (-1)
+    set neighbours nobody
+    set dist-neighbours []
+    set role 2
+    set label 2
+  ];
+
+    create-robots 1
+  [
+    set shape "person"
+    set size 4
+    set color yellow
+    setxy -20 -20
+    set leader false
+    set assigned false
+    set id_agent (who - nb-agents)
+    set is_placed true
+    set last_move (-1)
+    set neighbours nobody
+    set dist-neighbours []
+    set role 3
+    set label 3
+  ];
+    set leader-created true
+  ]
+
+  ask robots with [color != yellow]
+  [
+   facexy 0 0
+   if (in-army = true)
+    [ let mind min-one-of robots [distance self]
+      show mind
+      show distance mind
+      ifelse (distance mind < 10)
+      [face mind
+       right 180
+       fd 3]
+      [fd 1]
+    ]
+  ]
+end
+
 to go
-  ifelse method = "hungarian" [go-hungarian-method]
-  [if method = "blackboard" [go-blackboard-basic]]
-  if (all? robots [is_placed]) [stop]
+  ; Si tout les agents sont placés, on est dans la période de movement
+  ifelse (all? robots [is_placed])
+  [
+    ifelse (mover = "static") [stop]
+     [ifelse (mover = "centralized") [move-centralized]
+      [ifelse (mover = "leader") [move-leader]
+        [if (mover = "army") [move-army]]]]
+  ]
+  ; Si les agents ne sont pas placés, on est dans la période de placement
+  [
+   ifelse method = "hungarian" [go-hungarian-method]
+   [if method = "blackboard" [go-blackboard-basic]]
+  ]
   tick
 end
 
 to go-hungarian-method
   ask robots [facexy ciblex cibley]
-  ask robots [ ifelse ((distancexy ciblex cibley) > 0.5) [fd 1][set is_placed true] ]
+  ask robots [ifelse ((distancexy ciblex cibley) > 0.5) [fd 1][set is_placed true]]
 end
 
 ; Fonction boucle pour les actions de chaque agents
@@ -407,14 +559,13 @@ to go-blackboard-basic
   if (agent-behaviour = "dump") [ask robots [brain-blackboard-basic-dump]]
   if (agent-behaviour = "near") [ask robots [brain-blackboard-basic-near]]
   if (agent-behaviour = "stronger") [ask robots [brain-blackboard-basic-stronger]]
-
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-546
-18
-1157
-630
+560
+13
+1171
+625
 -1
 -1
 3.0
@@ -424,8 +575,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-0
-0
+1
+1
 1
 -100
 100
@@ -438,10 +589,10 @@ ticks
 30.0
 
 PLOT
-329
-320
-529
-470
+164
+324
+460
+554
 plot 1
 NIL
 NIL
@@ -467,49 +618,49 @@ sum [distancexy ciblex cibley] of robots
 11
 
 CHOOSER
-345
-124
-483
-169
+180
+128
+318
+173
 forms-choice
 forms-choice
 "line" "triangle" "square" "5-vertex"
 2
 
 SLIDER
-345
-22
-517
-55
+180
+26
+352
+59
 nb-agents
 nb-agents
 0
 100
-42.0
+55.0
 1
 1
 NIL
 HORIZONTAL
 
 CHOOSER
-345
-238
-488
-283
+180
+242
+323
+287
 agent-behaviour
 agent-behaviour
 "dump" "near" "stronger"
-2
+1
 
 CHOOSER
-346
-179
-484
-224
+181
+183
+319
+228
 method
 method
 "hungarian" "blackboard"
-1
+0
 
 BUTTON
 21
@@ -546,15 +697,40 @@ NIL
 1
 
 SLIDER
-344
-64
-516
-97
+179
+68
+351
+101
 form-size
 form-size
 0
 100
-32.0
+48.0
+1
+1
+NIL
+HORIZONTAL
+
+CHOOSER
+380
+26
+518
+71
+mover
+mover
+"static" "centralized" "leader" "army"
+3
+
+SLIDER
+378
+77
+550
+110
+directions
+directions
+0
+360
+105.0
 1
 1
 NIL
