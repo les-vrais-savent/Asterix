@@ -2,7 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-def courbe(Y, name, istick=True):
+def courbe(Y_base, name, istick=True):
+
+    Y = list(map(lambda x : round(x / Y_base[0], 2) , Y_base))
+    
     X = [1,2,3,4,5,6]
     labels = ["hungarian", "bd-dump", "bd-near", "bd-stronger", "bd-stronger-target", "bd-individual"]
 
