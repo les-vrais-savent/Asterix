@@ -645,8 +645,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 -100
 100
@@ -754,7 +754,7 @@ form-size
 form-size
 0
 100
-40.0
+90.0
 1
 1
 NIL
