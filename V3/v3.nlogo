@@ -645,8 +645,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-0
-0
+1
+1
 1
 -100
 100
@@ -754,7 +754,7 @@ form-size
 form-size
 0
 100
-80.0
+40.0
 1
 1
 NIL
@@ -768,7 +768,7 @@ CHOOSER
 mover
 mover
 "static" "centralized" "leader" "army"
-0
+2
 
 SLIDER
 378
@@ -779,7 +779,7 @@ directions
 directions
 0
 360
-0.0
+296.0
 1
 1
 NIL
