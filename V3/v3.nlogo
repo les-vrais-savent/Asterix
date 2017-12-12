@@ -306,7 +306,7 @@ to setup
   [
     set shape "person"
     set size 4
-    set color red
+    if (not color-agents) [ set color red]
     setxy random-pxcor random-pycor
     set leader false
     set assigned false
@@ -634,11 +634,11 @@ end
 GRAPHICS-WINDOW
 560
 13
-1171
-625
+1573
+1027
 -1
 -1
-3.0
+5.0
 1
 10
 1
@@ -699,7 +699,7 @@ CHOOSER
 agent-behaviour
 agent-behaviour
 "dump" "near" "stronger" "stronger-target" "individual-blackboard"
-0
+2
 
 CHOOSER
 195
@@ -709,13 +709,13 @@ CHOOSER
 method
 method
 "hungarian" "blackboard"
-0
+1
 
 BUTTON
-9
-32
-82
-65
+449
+438
+522
+471
 setup
 setup
 NIL
@@ -729,10 +729,10 @@ NIL
 1
 
 BUTTON
-9
-69
-72
-102
+462
+386
+525
+419
 go
 go
 T
@@ -768,7 +768,7 @@ CHOOSER
 mover
 mover
 "static" "centralized" "leader" "army"
-2
+0
 
 SLIDER
 378
@@ -779,7 +779,7 @@ directions
 directions
 0
 360
-186.0
+0.0
 1
 1
 NIL
@@ -879,12 +879,23 @@ SLIDER
 know-neighbours
 know-neighbours
 1
-10
-9.0
+20
+7.0
 1
 1
 NIL
 HORIZONTAL
+
+SWITCH
+384
+172
+532
+205
+color-agents
+color-agents
+0
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
