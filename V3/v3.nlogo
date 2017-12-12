@@ -462,7 +462,7 @@ to move-leader
   ; S'ils n'ont pas encore enregistré la distance avec leurs deux plus proches voisins
   if (all? robots [neighbours = nobody])
   [
-    ask robots [set neighbours (min-n-of 10 robots with [id_agent != [id_agent] of myself] [distance myself])
+    ask robots [set neighbours (min-n-of know-neighbours robots with [id_agent != [id_agent] of myself] [distance myself])
                 let l [distance myself] of turtle-set sort-on [who] neighbours
                 set dist-neighbours l]
   ]
@@ -645,8 +645,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-0
-0
+1
+1
 1
 -100
 100
@@ -754,7 +754,7 @@ form-size
 form-size
 0
 100
-90.0
+48.0
 1
 1
 NIL
@@ -779,7 +779,7 @@ directions
 directions
 0
 360
-296.0
+186.0
 1
 1
 NIL
@@ -870,6 +870,21 @@ moy-tick
 17
 1
 11
+
+SLIDER
+381
+120
+553
+153
+know-neighbours
+know-neighbours
+1
+10
+9.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
